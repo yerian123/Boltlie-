@@ -117,3 +117,44 @@ Where the region still has the most room:
 - Rows with no website were moved to the held-back table (8). No row's website could be load-tested, because of the network block.
 - Two rows (Ontario Heating, Sentral HVAC) were downgraded to Low owner confidence: their only source was a data aggregator.
 - No owner direct lines were recorded. None were published by the businesses in the sources seen. No people-search or data-broker phone numbers were used.
+
+---
+
+## Update, Sep 29 2026: ads and hiring rechecked
+
+This was a follow-up pass on the same 64 leads, using the two tools that still work in this session: the Meta Ad Library and Indeed. No new companies were added. A new browser-based run (Google Maps, Facebook, LinkedIn) couldn't happen here because this session has no Chrome or computer tools, and the network blocks those sites.
+
+**Running Meta ads now (confirmed on Sep 29):**
+- **Spurr Heating & Air Conditioning** (Hamilton): 5 active "$99.99 Check" furnace tune-up ads, started Sep 25.
+- **Special Gas Services** (Brampton): 5 active ads. The newest started Sep 14 ("Serving Brampton and surrounding areas").
+- **Burlington Heating & Air Conditioning** (Burlington): *new find*. Two active ads: "Instant Rebates Up to $1,250 on Trane Systems" (started Sep 23) and "Rebates Up to $1,250 on HVAC Systems" (started Sep 28).
+- **Central Heating** (Barrie): *new find, likely match*. The page "Central Heating and Air conditioning Barrie" is running "Get $1,500 OFF Your Heating & AC System" (started Sep 16) and "Heating & AC for $116/Month" (started Sep 2). Confirm it's the same company. The $116/month offer is financing; check it isn't a rental contract.
+
+**Hiring now (posted in the last 60 days, from Indeed):**
+- **Maple Air** (Vaughan): HVAC Service Technician (Sep 19) and HVAC Lead Dispatcher (Sep 3). **Now A-tier (16).**
+- **Central Heating Inc.** (Barrie): Dispatcher (Sep 24). Score is now 15.
+- **Precision HVAC Mechanics** (Oakville): part-time HVAC Administrative Assistant (Sep 21). Hiring office help is a good response-gap discovery angle. Score is now 14.
+- **Spring Home Heating & Cooling** (Markham): the Sep 22 installer posting didn't come back in a name search today. It may have closed, or the search just missed it. Kept as Y.
+
+**Tier changes:** A is now 2 (Dynamic Heating & Cooling, Maple Air), B is 53, C is 9. Burlington Heating went from 11 to 12.
+
+**New flag:** **Tenacity HVAC**'s only Indeed posting ("Join the Tenacity HVAC Family", March 2026) was listed under the employer **Veracity Electric Inc**. That could mean a shared owner or a multi-company group. Check before calling.
+
+**How reliable these checks are:**
+- Both tools search by keyword, so both miss things. The Meta name search didn't surface Special Gas Services' ads (they were only found by Page ID). The Indeed name search didn't return Spring Home's known posting.
+- So "None found" in the CSV means *not found*, not *confirmed none*. Scores for those rows stay at 1 (unknown).
+- **Not checked on Indeed** (the tool started rate-limiting, so I stopped rather than retry): Delta T, Evam, Anything Gas, HVAC Zack, The Heatman, Admore, Gas Fitter Complete, MY HVAC guy, Markham Heating, TopCare, AOBUTEC, Castlemore, First Choice, HVAC-Group, Heat Flow, MH Heating, Peatson's, Tropic Air.
+
+**New companies seen hiring on Indeed.** None of these are in the CSV. They're candidates for the next run and need the full screen first:
+- **JP Home Comfort** (Brampton): heat pump and ductless installer, Sep 26.
+- **Absolute Comfort Heating & Air Conditioning** (Mississauga): lead service/install tech, Sep 16.
+- **Guest Plumbing and HVAC** (Hamilton): lead HVAC tech, Sep 8.
+- **Ideal Heating and Air Conditioning** (Vaughan): G3 technician, Sep 14.
+- **Comfort Air Solutions** (Concord): dispatcher, Sep 8.
+- **Green Life HVAC** (Concord): installer, Sep 15.
+- **Air Source Home Comfort** (Barrie): service tech, Sep 21.
+- **Enterprise Mechanical** (Barrie): G2 tech, Sep 1.
+- **Pinewood Heating & A/C** (Pickering): installer, Sep 23.
+- **Climate Experts Heating & Cooling** (Pickering): residential service tech, Sep 11.
+- **Marx Mechanical** (Uxbridge): residential tech, Sep 25. Already logged as outside the listed cities.
+- **Screen carefully first:** Go Lime Inc. (GTA, several postings; may be multi-location) and Peak Home Comfort (Toronto).
