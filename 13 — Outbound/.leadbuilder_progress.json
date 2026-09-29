@@ -1,0 +1,28 @@
+{
+  "region": "Ontario — GTA",
+  "date": "2026-09-29",
+  "status": "stopped - web search budget exhausted (200/200) before BATCH_SIZE 150",
+  "cities_done": [
+    "Mississauga",
+    "Brampton",
+    "Oakville",
+    "Burlington",
+    "Hamilton",
+    "Vaughan",
+    "Markham",
+    "Richmond Hill",
+    "Oshawa",
+    "Whitby",
+    "Barrie"
+  ],
+  "second_pass_started": [
+    "Mississauga",
+    "Hamilton",
+    "Brampton"
+  ],
+  "companies_reviewed": 149,
+  "csv_rows": 64,
+  "held_back_no_website": 8,
+  "excluded": 77,
+  "updated": "2026-09-29T05:19:28.142020Z"
+}
