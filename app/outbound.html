@@ -1,0 +1,667 @@
+<title>Boltline Outbound</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a dispatcher's desk. Top bar with tabs; Today = numbers strip + call queue; heat reads like a thermostat (cold blue → warm amber → hot flame). */
+:root {
+  --bg: #eef2f4; --surface: #ffffff; --raised: #f6f8f9; --ink: #13212b; --muted: #5a6a76; --line: #d4dce1;
+  --accent: #0b6676; --accent-ink: #ffffff; --accent-soft: #dcecef;
+  --hot: #c8401a; --hot-soft: #fbe3da; --warm: #a86f00; --warm-soft: #f8ecd2; --cold: #2f6f9f; --cold-soft: #dde9f3;
+  --good: #1d7a46; --bad: #b3261e; --bad-soft: #f9dedb;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e161c; --surface: #15212a; --raised: #1a2832; --ink: #e2eaee; --muted: #93a5b1; --line: #263641;
+  --accent: #52b6c6; --accent-ink: #062027; --accent-soft: #163640;
+  --hot: #ff7c50; --hot-soft: #3a1d14; --warm: #e8b34d; --warm-soft: #33280f; --cold: #6cb0e4; --cold-soft: #142c3e;
+  --good: #5cc98a; --bad: #ff8a80; --bad-soft: #3a1714; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e161c; --surface: #15212a; --raised: #1a2832; --ink: #e2eaee; --muted: #93a5b1; --line: #263641;
+  --accent: #52b6c6; --accent-ink: #062027; --accent-soft: #163640;
+  --hot: #ff7c50; --hot-soft: #3a1d14; --warm: #e8b34d; --warm-soft: #33280f; --cold: #6cb0e4; --cold-soft: #142c3e;
+  --good: #5cc98a; --bad: #ff8a80; --bad-soft: #3a1714; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px }
+button, input, select, textarea { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+a { color: var(--accent) }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.muted { color: var(--muted) }
+.small { font-size: 13px }
+
+/* top bar */
+header.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line) }
+header.bar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding-block: 12px }
+.brand { font: 700 24px/1 var(--display); letter-spacing: .02em; text-transform: uppercase; display: flex; align-items: baseline; gap: 8px }
+.brand span { color: var(--accent) }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap }
+nav.tabs button { background: none; border: 1px solid transparent; border-radius: var(--r); padding: 6px 12px; color: var(--muted); font-weight: 500 }
+nav.tabs button[aria-selected="true"] { background: var(--surface); border-color: var(--line); color: var(--ink) }
+.status-dot { margin-left: auto; font-size: 12px; color: var(--muted) }
+
+h2 { font: 700 26px/1.1 var(--display); text-transform: uppercase; letter-spacing: .02em; margin: 28px 0 12px; text-wrap: balance }
+h3 { font: 600 15px/1.3 var(--body); margin: 0 }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+
+/* numbers strip */
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 20px }
+.gauge { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 6px }
+.gauge .num { font: 700 30px/1 var(--display); font-variant-numeric: tabular-nums }
+.gauge .num small { font: 500 14px var(--body); color: var(--muted) }
+.track { height: 6px; background: var(--raised); border-radius: 3px; overflow: hidden }
+.track i { display: block; height: 100%; background: var(--accent); border-radius: 3px }
+.alert { margin-top: 12px; padding: 12px 14px; border-radius: var(--r); background: var(--bad-soft); color: var(--bad); font-weight: 500 }
+
+/* queue */
+.queue-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px }
+.queue { display: grid; gap: 12px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0 }
+.card.done { opacity: .55 }
+.card-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px }
+.card-top h3 { font: 700 22px/1.1 var(--display); letter-spacing: .01em }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 20px }
+.fact { min-width: 0 }
+.fact .v { overflow-wrap: anywhere }
+.hook { background: var(--raised); border-radius: var(--r); padding: 10px 12px; overflow-wrap: anywhere }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; white-space: nowrap }
+.chip.HOT { background: var(--hot-soft); color: var(--hot) }
+.chip.WARM { background: var(--warm-soft); color: var(--warm) }
+.chip.COLD { background: var(--cold-soft); color: var(--cold) }
+.chip.plain { background: var(--raised); color: var(--muted) }
+.chip.vm { background: var(--accent-soft); color: var(--accent) }
+.phone { font: 500 18px var(--mono); }
+.copy { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 2px 8px; font-size: 12px; margin-left: 6px }
+
+.opener { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; display: grid; gap: 6px; overflow-wrap: anywhere }
+.opener p { margin: 0 }
+.codes { display: flex; flex-wrap: wrap; gap: 6px }
+.codes button { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 6px 10px; font: 500 13px var(--mono) }
+.codes button:hover { border-color: var(--accent) }
+.codes button.win { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.log-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px }
+input[type=text], input[type=date], input[type=search], select, textarea {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 7px 10px; width: 100%; min-width: 0 }
+textarea { resize: vertical; min-height: 80px }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 14px; font-weight: 500 }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.btn:disabled { opacity: .5; cursor: default }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 28px; text-align: center; color: var(--muted) }
+
+/* leads table */
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r) }
+table { border-collapse: collapse; width: 100%; font-size: 14px }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--raised) }
+tbody tr { cursor: pointer }
+tbody tr:hover { background: var(--raised) }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+
+/* editor */
+.editor { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; margin-bottom: 16px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px }
+.field { display: grid; gap: 4px; min-width: 0 }
+.field label { font-size: 12px; color: var(--muted); font-weight: 500 }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr } }
+.out { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; min-height: 160px; overflow-wrap: anywhere }
+.lock { background: var(--raised); border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--muted) }
+ul.obj { margin: 0; padding-left: 18px; display: grid; gap: 4px }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: var(--r); display: flex; gap: 12px; align-items: center; z-index: 10; max-width: calc(100% - 32px) }
+.toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: var(--r); padding: 2px 10px }
+@media (prefers-reduced-motion: no-preference) { .card { transition: opacity .2s } }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand">Boltline <span>Outbound</span></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="today" aria-selected="true">Today</button>
+      <button role="tab" data-tab="leads" aria-selected="false">Leads</button>
+      <button role="tab" data-tab="drafts" aria-selected="false">Drafts</button>
+      <button role="tab" data-tab="numbers" aria-selected="false">Numbers</button>
+      <button role="tab" data-tab="voice" aria-selected="false">Voice</button>
+    </nav>
+    <div class="status-dot" id="conn">Connecting…</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- TODAY -->
+  <section data-panel="today">
+    <div class="strip" id="strip"></div>
+    <div id="kill"></div>
+    <div class="queue-head">
+      <h2 id="queueTitle">Today's calls</h2>
+      <div class="row small muted"><label for="qn">Leads</label><input id="qn" type="text" inputmode="numeric" style="width:64px" value="15"></div>
+    </div>
+    <div class="queue" id="queue"><div class="empty">Loading your leads…</div></div>
+  </section>
+
+  <!-- LEADS -->
+  <section data-panel="leads" hidden>
+    <h2>Leads</h2>
+    <div class="row" style="margin-bottom:12px">
+      <input id="search" type="search" placeholder="Search company, city, owner" style="max-width:280px">
+      <select id="heatFilter" style="max-width:150px"><option value="">All heat</option><option>HOT</option><option>WARM</option><option>COLD</option></select>
+      <button class="btn primary" id="addLead">Add lead</button>
+      <button class="btn" id="importBtn">Import CSV</button>
+    </div>
+    <div id="importBox" class="editor" hidden>
+      <h3>Import a lead CSV</h3>
+      <p class="small muted" style="margin:0">Export your Google Sheet as CSV, then pick the file or paste it. Columns are matched by name (Company, City, Province, Main phone, Owner name, Google rating, Google review count, Hiring?, Running ads?, Call hook…). Rows whose company and phone already exist are skipped.</p>
+      <input id="csvFile" type="file" accept=".csv,text/csv">
+      <textarea id="csvPaste" placeholder="…or paste CSV here"></textarea>
+      <div class="field" style="max-width:200px"><label for="csvProv">Province if the file has none</label><input id="csvProv" type="text" value="BC"></div>
+      <div class="row"><button class="btn primary" id="doImport">Import</button><span class="small muted" id="importMsg"></span></div>
+    </div>
+    <div id="editorBox"></div>
+    <div class="tablebox"><table>
+      <thead><tr><th>Company</th><th>City</th><th>Heat</th><th>Calls</th><th>Last outcome</th><th>Next call</th><th>Owner</th></tr></thead>
+      <tbody id="leadRows"></tbody>
+    </table></div>
+    <p class="small muted" id="leadCount"></p>
+  </section>
+
+  <!-- DRAFTS -->
+  <section data-panel="drafts" hidden>
+    <h2>Drafts</h2>
+    <div class="two">
+      <div style="display:grid;gap:12px;align-content:start">
+        <div class="field"><label for="dLead">Who is it for?</label><select id="dLead"></select></div>
+        <div class="field"><label for="dType">What kind of message?</label>
+          <select id="dType">
+            <option value="confirm">Meeting confirmation (after booking on a call)</option>
+            <option value="info">Follow-up they asked for on a call</option>
+            <option value="referral">Warm-referral follow-up</option>
+            <option value="fbreply">Reply to someone in a Facebook group</option>
+            <option value="cold" disabled>Cold email (locked until Gate 2)</option>
+          </select></div>
+        <div class="field"><label for="dChannel">Channel</label><select id="dChannel"><option>Email</option><option>Text</option><option>Facebook DM</option></select></div>
+        <div class="field"><label for="dNotes">What happened / what to include</label><textarea id="dNotes" placeholder="e.g. Talked to Nathan, booked Thu 4:15 PT. He asked how the text-back works."></textarea></div>
+        <div class="lock">Cold email to people who never engaged stays locked until Gate 2 and a mailing address exist (CASL). Every draft is for you to read and send yourself.</div>
+        <div class="row"><button class="btn primary" id="dGo">Write draft</button><button class="btn" id="dStop" hidden>Stop</button></div>
+      </div>
+      <div style="display:grid;gap:8px;align-content:start;min-width:0">
+        <div class="label">Draft</div>
+        <div class="out" id="dOut">Pick a lead and a message type, add what happened, then press Write draft.</div>
+        <div class="row"><button class="btn" id="dCopy">Copy</button><span class="small muted" id="dMsg"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section data-panel="numbers" hidden>
+    <h2>Numbers</h2>
+    <div id="numbers"></div>
+  </section>
+
+  <!-- VOICE -->
+  <section data-panel="voice" hidden>
+    <h2>Your voice</h2>
+    <p class="muted" style="max-width:65ch">Openers and drafts are written from this. Paste 10–20 real texts, DMs or call lines you've written at the bottom; it makes everything sound more like you.</p>
+    <textarea id="voiceText" style="min-height:420px"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn primary" id="saveVoice">Save voice</button><span class="small muted" id="voiceMsg"></span></div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  // ---------- constants ----------
+  const CODES = [["NA","No answer"],["VM","Voicemail"],["GK","Gatekeeper"],["CONV","Talked, no decision"],["CB","Callback"],["NF","Not a fit"],["NI","Not interested"],["MTG","Meeting booked"]];
+  const CONVERSATION = new Set(["NI","CB","NF","MTG","CONV"]);
+  const CLOSED = new Set(["NI","NF","MTG"]);
+  const RETRY = { NA: 3, VM: 3, GK: 2, CONV: 7 };
+  const MAX_ATTEMPTS = 5, VM_ATTEMPT = 3;
+  const MY_TZ = "America/Vancouver";
+  const MY_WINDOWS = [["09:00","10:00"],["16:00","17:30"]];
+  const PROV_TZ = { BC:"America/Vancouver", AB:"America/Edmonton", SK:"America/Regina", MB:"America/Winnipeg", ON:"America/Toronto", NB:"America/Moncton", NS:"America/Halifax", PE:"America/Halifax", NL:"America/St_Johns" };
+  const DEFAULT_VOICE = `HOW I SOUND
+- Short and spoken. Write it how I'd say it on the phone.
+- Straight to the reason: "I'll be quick. The reason I'm calling is..."
+- Plain words. No "leverage", "solutions", "game-changer", "hope this finds you well", no hype.
+- Specific to the shop: their city, their hook, the season (furnace/heat pump Oct-Mar, AC Apr-Sep).
+- Honest. Say what's not promised. Tell the truth if asked anything, including my age.
+- One ask at a time with an easy out: "If it's not a fit, I'll tell you."
+
+CALL FRAMEWORK
+Opener -> Problem -> Problem statement -> Solution -> Desired result -> Temp check -> Book it.
+Opener: "Hey [Name], Yerian with Boltline Growth. I'll be quick. The reason I'm calling is I work with HVAC shops around [city] on getting more install jobs. Got a sec?"
+Problem: "From what I'm seeing with HVAC shops around here, most run almost entirely on referrals and Google. So when referrals slow down, the install schedule gets thin. Is that something you're dealing with, or are you pretty booked up?"
+Book it: "Easiest thing is 15 minutes where I show you exactly what it'd look like for [Company]. If it's not a fit, I'll tell you. Does [day] at [time] or [day] at [time] work better?"
+What it is: "I run Facebook ads for furnace and heat pump installs in your area, inside your own ad account. Every lead and every call you miss gets a text back in seconds, and quotes that didn't book get followed up. You pay Facebook directly for the ads."
+
+NEVER SAY
+- Promises of leads, jobs or revenue, or "close rates double"
+- Industry stats as fact ("34% of your calls go unanswered")
+- Blanket rebate claims
+- Fake familiarity or fake urgency
+
+REAL SAMPLES (paste my own messages here)
+`;
+
+  // ---------- state ----------
+  let db = null, sample = null;
+  let leads = new Map();      // id -> data
+  let calls = [];             // call docs
+  let settings = { voice: DEFAULT_VOICE };
+  let settingsExists = false;
+  let loaded = { leads: false, calls: false };
+  let editingId = null;
+  let lastAction = null;      // for undo
+  const openerBusy = new Set();
+  const logOpen = new Set();
+
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+  const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); };
+  const num = (t, f) => { const m = String(t ?? "").match(/\d[\d,]*(\.\d+)?/); if (!m) return null; const v = parseFloat(m[0].replace(/,/g,"")); return f ? v : Math.round(v); };
+  const yes = t => String(t ?? "").trim().toUpperCase().startsWith("Y");
+
+  // ---------- heat ----------
+  function heat(l) {
+    let s = 0; const r = [];
+    const ads = String(l.ads ?? "");
+    if (yes(l.googleAds) || /^\s*(Google|LSA)/i.test(ads)) { s += 3; r.push("buys Google/LSA leads +3"); }
+    if (/^\s*Meta/i.test(ads)) r.push("running Meta ads (check if agency-run)");
+    if (yes(l.hiring)) { s += 2; r.push("hiring now +2"); }
+    if (yes(l.closedEvenings)) { s += 2; r.push("closed weekday evenings +2"); }
+    if (/^(VM|NA)/i.test(String(l.afterHours ?? ""))) { s += 2; r.push("after-hours call unanswered +2"); }
+    const rv = num(l.reviews), rt = num(l.rating, true);
+    if (rv != null) {
+      if (rv > 1000) { s -= 3; r.push(`${rv} reviews, may be too big −3`); }
+      else if (rv >= 50 && rv <= 600 && (rt ?? 0) >= 4) { s += 2; r.push(`${rv} reviews at ${rt} +2`); }
+      else if (rv < 20) { s -= 2; r.push(`only ${rv} reviews −2`); }
+      else { s += 1; r.push(`${rv} reviews +1`); }
+    }
+    if (l.ownerConf === "High") { s += 1; r.push("owner name confirmed +1"); }
+    return { score: s, level: s >= 5 ? "HOT" : s >= 3 ? "WARM" : "COLD", reasons: r };
+  }
+
+  // ---------- time windows ----------
+  function tzOffsetMin(tz, ms) {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit" }).formatToParts(new Date(ms)).map(x => [x.type, x.value]));
+    return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ms) / 60000;
+  }
+  function zonedMs(iso, hhmm, tz) {
+    const [y,m,d] = iso.split("-").map(Number), [h,mi] = hhmm.split(":").map(Number);
+    const guess = Date.UTC(y, m-1, d, h, mi);
+    return guess - tzOffsetMin(tz, guess - tzOffsetMin(tz, guess) * 60000) * 60000;
+  }
+  const fmt = (ms, tz) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(ms));
+  function windows(l) {
+    const tz = PROV_TZ[String(l.province ?? "").trim().toUpperCase()];
+    if (!tz) return { text: "Unknown province: check their local time first", ok: true };
+    const day = todayStr(), dow = new Date(day + "T12:00:00").getDay(), weekend = dow === 0 || dow === 6;
+    const [lo, hi] = weekend ? ["10:00","18:00"] : ["09:00","21:30"];
+    let allOk = true;
+    const parts = MY_WINDOWS.map(([a,b]) => {
+      const A = fmt(zonedMs(day, a, MY_TZ), tz), B = fmt(zonedMs(day, b, MY_TZ), tz);
+      const ok = A >= lo && B <= hi; if (!ok) allOk = false;
+      return tz === MY_TZ ? `${a}–${b}` : `${a}–${b} yours = ${A}–${B} theirs${ok ? "" : " (outside legal hours)"}`;
+    });
+    return { text: parts.join(" · "), ok: allOk };
+  }
+
+  // ---------- queue ----------
+  function callable(l, today) {
+    if (l.dnc) return false;
+    if (CLOSED.has(String(l.outcome ?? "").toUpperCase())) return false;
+    if ((l.attempts || 0) >= MAX_ATTEMPTS) return false;
+    return !l.nextCall || l.nextCall <= today;
+  }
+  function buildQueue(n) {
+    const today = todayStr();
+    return [...leads.entries()].filter(([, l]) => callable(l, today)).map(([id, l]) => ({ id, l, h: heat(l) }))
+      .sort((a, b) => {
+        const ca = a.l.outcome === "CB" ? 0 : 1, cb = b.l.outcome === "CB" ? 0 : 1;
+        return ca - cb || b.h.score - a.h.score || (a.l.attempts||0) - (b.l.attempts||0) || (b.l.fit||0) - (a.l.fit||0);
+      }).slice(0, n);
+  }
+
+  // ---------- stats ----------
+  function stats() {
+    const today = todayStr(), d = new Date(today + "T12:00:00"), dow = (d.getDay() + 6) % 7;
+    const weekStart = addDays(today, -dow);
+    const count = arr => ({ dials: arr.length, convs: arr.filter(c => CONVERSATION.has(c.code)).length, mtgs: arr.filter(c => c.code === "MTG").length });
+    return { all: count(calls), week: count(calls.filter(c => c.date >= weekStart)), today: count(calls.filter(c => c.date === today)) };
+  }
+
+  // ---------- render: today ----------
+  function gauge(label, val, target, unit = "") {
+    const pct = Math.min(100, target ? (val / target) * 100 : 0);
+    return `<div class="gauge"><div class="label">${esc(label)}</div><div class="num">${val}<small> / ${target}${unit}</small></div><div class="track"><i style="width:${pct}%"></i></div></div>`;
+  }
+  function renderStrip() {
+    const s = stats();
+    $("#strip").innerHTML = gauge("Dials this week", s.week.dials, 75) + gauge("Owner conversations", s.week.convs, 5) + gauge("Meetings this week", s.week.mtgs, 1) + gauge("Validation dials", s.all.dials, 300);
+    $("#kill").innerHTML = s.all.dials >= 300 && s.all.mtgs === 0 ? `<div class="alert">Kill switch: ${s.all.dials} dials and no meetings. Stop dialing and fix the opener or the list first. Check the objections on the Numbers tab.</div>` : "";
+  }
+  function renderQueue() {
+    const box = $("#queue");
+    if (!loaded.leads) return;
+    if (!leads.size) { box.innerHTML = `<div class="empty">No leads yet. Go to <b>Leads</b> to import a CSV or add one.</div>`; return; }
+    const n = Math.max(1, Math.min(100, parseInt($("#qn").value) || 15));
+    const q = buildQueue(n), today = todayStr();
+    const doneToday = calls.filter(c => c.date === today).length;
+    $("#queueTitle").textContent = `Today's calls · ${q.length} to dial` + (doneToday ? ` · ${doneToday} logged` : "");
+    if (!q.length) { box.innerHTML = `<div class="empty">Nothing due today. Add leads or check back when retries come due.</div>`; return; }
+    box.innerHTML = q.map(({ id, l, h }) => {
+      const att = (l.attempts || 0) + 1, w = windows(l);
+      const op = l.opener;
+      return `<article class="card" data-id="${esc(id)}">
+        <div class="card-top">
+          <div style="min-width:0"><h3>${esc(l.company)}</h3><div class="muted small">${esc([l.city, l.province].filter(Boolean).join(", "))}${l.outcome ? ` · last: ${esc(l.outcome)} ${esc(l.lastCall || "")}` : " · never called"}</div></div>
+          <div class="row"><span class="chip ${h.level}">${h.level} ${h.score}</span>${l.outcome === "CB" ? `<span class="chip vm">Callback due</span>` : ""}<span class="chip ${att === VM_ATTEMPT ? "vm" : "plain"}">Attempt ${att}/${MAX_ATTEMPTS}${att === VM_ATTEMPT ? " · leave VM" : ""}</span></div>
+        </div>
+        <div class="facts">
+          <div class="fact"><div class="label">Phone</div><div class="v"><span class="phone">${esc(l.phone || "—")}</span>${l.phone ? `<button class="copy" data-copy="${esc(l.phone)}">Copy</button>` : ""}</div></div>
+          <div class="fact"><div class="label">Ask for</div><div class="v">${esc(l.owner || "the owner")} <span class="muted small">${esc(l.ownerConf ? l.ownerConf + " confidence" : "")}</span></div></div>
+          <div class="fact"><div class="label">When</div><div class="v small mono" style="${w.ok ? "" : "color:var(--bad)"}">${esc(w.text)}</div></div>
+          <div class="fact"><div class="label">Why it's ${h.level.toLowerCase()}</div><div class="v small">${esc(h.reasons.join("; ") || "No signals yet. Fill hiring, ads and hours on the Leads tab.")}</div></div>
+        </div>
+        ${l.hook ? `<div class="hook"><div class="label">Hook</div>${esc(l.hook)} ${l.hookUrl ? `<a href="${esc(l.hookUrl)}" target="_blank" rel="noopener" class="small">source</a>` : ""}</div>` : ""}
+        ${op ? `<div class="opener"><div class="label">Opener</div><p>${esc(op.opener)}</p>${op.problem ? `<p><b>Ask:</b> ${esc(op.problem)}</p>` : ""}${op.bookIt ? `<p><b>Book it:</b> ${esc(op.bookIt)}</p>` : ""}${op.watchOut ? `<p class="small muted"><b>Watch out:</b> ${esc(op.watchOut)}</p>` : ""}</div>` : ""}
+        <div class="row">${sample ? `<button class="btn" data-opener="${esc(id)}" ${openerBusy.has(id) ? "disabled" : ""}>${openerBusy.has(id) ? "Writing…" : op ? "Rewrite opener" : "Write opener"}</button>` : ""}</div>
+        <div class="codes" role="group" aria-label="Log this call">${CODES.map(([c, t]) => `<button data-log="${c}" title="${t}" class="${c === "MTG" ? "win" : ""}">${c}</button>`).join("")}</div>
+        <div class="log-extra">
+          <input type="text" id="note-${esc(id)}" placeholder="Note (optional)">
+          <input type="text" id="obj-${esc(id)}" placeholder="Objection, word for word (optional)">
+          <div class="row"><label class="small muted" for="cb-${esc(id)}">Callback</label><input type="date" id="cb-${esc(id)}" style="flex:1"></div>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+  // ---------- render: leads ----------
+  function renderLeads() {
+    const qtxt = $("#search").value.trim().toLowerCase(), hf = $("#heatFilter").value;
+    const rows = [...leads.entries()].map(([id, l]) => ({ id, l, h: heat(l) }))
+      .filter(x => (!hf || x.h.level === hf) && (!qtxt || [x.l.company, x.l.city, x.l.owner].join(" ").toLowerCase().includes(qtxt)))
+      .sort((a, b) => b.h.score - a.h.score || String(a.l.company).localeCompare(b.l.company));
+    $("#leadRows").innerHTML = rows.map(({ id, l, h }) => `<tr data-edit="${esc(id)}">
+      <td><b>${esc(l.company)}</b>${l.dnc ? ` <span class="chip plain">Do not call</span>` : ""}</td><td>${esc(l.city)}${l.province ? ", " + esc(l.province) : ""}</td>
+      <td><span class="chip ${h.level}">${h.level} ${h.score}</span></td><td class="num">${l.attempts || 0}</td>
+      <td>${esc(l.outcome || "—")}</td><td class="num">${esc(l.nextCall || "—")}</td><td>${esc(l.owner || "—")}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">No leads match.</td></tr>`;
+    $("#leadCount").textContent = `${rows.length} of ${leads.size} leads`;
+    const sel = $("#dLead"), cur = sel.value;
+    sel.innerHTML = `<option value="">— Not a lead on the list —</option>` + [...leads.entries()].sort((a,b) => String(a[1].company).localeCompare(b[1].company)).map(([id, l]) => `<option value="${esc(id)}">${esc(l.company)}</option>`).join("");
+    sel.value = cur;
+  }
+
+  const FIELDS = [
+    ["company","Company"],["city","City"],["province","Province (BC, AB, ON…)"],["phone","Main phone"],["owner","Owner name"],
+    ["ownerConf","Owner confidence (High/Medium/Low/None)"],["website","Website"],["rating","Google rating"],["reviews","Google review count"],
+    ["hiring","Hiring? (Y/N + source)"],["ads","Running ads? (Meta/Google/None + source)"],["googleAds","Google Ads / LSA (Y/N/Unknown + source)"],
+    ["closedEvenings","Closed weekday evenings (Y/N/Unknown)"],["afterHours","After-hours check (VM / NA / ANSWERED + date)"],
+    ["hook","Call hook (one true, sourced fact)"],["hookUrl","Hook source URL"],["nextCall","Next call date (YYYY-MM-DD)"],["notes","Notes"]
+  ];
+  function renderEditor() {
+    const box = $("#editorBox");
+    if (editingId === null) { box.innerHTML = ""; return; }
+    const isNew = editingId === "__new__", l = isNew ? {} : (leads.get(editingId) || {});
+    const h = heat(l);
+    const objs = Array.isArray(l.objections) ? l.objections : [];
+    box.innerHTML = `<div class="editor">
+      <div class="card-top"><h3 style="font:700 22px/1.1 var(--display)">${isNew ? "New lead" : esc(l.company)}</h3>${isNew ? "" : `<span class="chip ${h.level}">${h.level} ${h.score}</span>`}</div>
+      <div class="grid2">${FIELDS.map(([k, t]) => `<div class="field"><label for="f-${k}">${esc(t)}</label>${k === "notes" ? `<textarea id="f-${k}">${esc(l[k])}</textarea>` : `<input type="text" id="f-${k}" value="${esc(l[k])}">`}</div>`).join("")}</div>
+      <label class="row small"><input type="checkbox" id="f-dnc" ${l.dnc ? "checked" : ""}> Do not call</label>
+      ${objs.length ? `<div><div class="label">Objections heard</div><ul class="obj">${objs.map(o => `<li>${esc(o.date)}: “${esc(o.text)}”</li>`).join("")}</ul></div>` : ""}
+      <div class="row"><button class="btn primary" id="saveLead">${isNew ? "Add lead" : "Save changes"}</button><button class="btn" id="cancelLead">Close</button>${isNew ? "" : `<button class="btn" id="delLead" style="margin-left:auto;color:var(--bad)">Delete lead</button>`}<span class="small muted" id="leadMsg"></span></div>
+    </div>`;
+    box.scrollIntoView({ block: "nearest" });
+  }
+
+  // ---------- render: numbers ----------
+  function renderNumbers() {
+    const s = stats();
+    const rate = (a, b) => b ? Math.round((a / b) * 100) + "%" : "—";
+    const objs = calls.filter(c => c.objection).sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+    const byCode = Object.fromEntries(CODES.map(([c]) => [c, calls.filter(x => x.code === c).length]));
+    $("#numbers").innerHTML = `
+      <div class="strip">${gauge("Validation: dials", s.all.dials, 300)}${gauge("Validation: conversations", s.all.convs, 20)}${gauge("Validation: meetings", s.all.mtgs, 3)}</div>
+      <div class="strip">
+        <div class="gauge"><div class="label">Dials that reach an owner</div><div class="num">${rate(s.all.convs, s.all.dials)}</div></div>
+        <div class="gauge"><div class="label">Conversations that book</div><div class="num">${rate(s.all.mtgs, s.all.convs)}</div></div>
+        <div class="gauge"><div class="label">Today</div><div class="num">${s.today.dials}<small> dials</small></div></div>
+      </div>
+      <h2>Outcomes</h2>
+      <div class="tablebox"><table><thead><tr>${CODES.map(([c, t]) => `<th title="${t}">${c}</th>`).join("")}</tr></thead><tbody><tr style="cursor:default">${CODES.map(([c]) => `<td class="num">${byCode[c]}</td>`).join("")}</tr></tbody></table></div>
+      <h2>Objections, word for word</h2>
+      ${objs.length ? `<ul class="obj">${objs.slice(0, 50).map(o => `<li><b>${esc(o.company)}</b> <span class="muted small">${esc(o.date)}</span>: “${esc(o.objection)}”</li>`).join("")}</ul>` : `<div class="empty">No objections logged yet. Type them in the box on a call card when you log the call.</div>`}`;
+  }
+
+  function renderAll() { renderStrip(); renderQueue(); renderLeads(); renderEditor(); renderNumbers(); }
+
+  // ---------- toast ----------
+  let toastTimer;
+  function toast(msg, undo) {
+    const t = $("#toast");
+    t.innerHTML = `<span>${esc(msg)}</span>${undo ? `<button id="undoBtn">Undo</button>` : ""}`;
+    t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, undo ? 8000 : 3000);
+  }
+
+  // ---------- actions ----------
+  async function logCall(id, code) {
+    const l = leads.get(id); if (!l || !db) return;
+    const today = todayStr(), att = (l.attempts || 0) + 1;
+    const note = $(`#note-${CSS.escape(id)}`)?.value.trim() || "", objection = $(`#obj-${CSS.escape(id)}`)?.value.trim() || "", cb = $(`#cb-${CSS.escape(id)}`)?.value || "";
+    const before = { attempts: l.attempts || 0, lastCall: l.lastCall || "", outcome: l.outcome || "", nextCall: l.nextCall || "", status: l.status || "", objections: l.objections || [], notes: l.notes || "" };
+    const patch = {
+      attempts: att, lastCall: today, outcome: code,
+      status: { MTG: "Meeting booked", NI: "Not interested", NF: "Not a fit", CB: "Callback" }[code] || (att >= MAX_ATTEMPTS ? "Max attempts reached" : "In progress"),
+      nextCall: code === "CB" ? (cb || addDays(today, 7)) : RETRY[code] ? addDays(today, RETRY[code]) : ""
+    };
+    if (objection) patch.objections = [...(l.objections || []), { date: today, text: objection }];
+    if (note) patch.notes = `${l.notes || ""} [${today} ${code}: ${note}]`.trim();
+    try {
+      const ref = await db.collection("calls").add({ date: today, ts: new Date().toISOString(), leadId: id, company: l.company, code, attempt: att, note, objection });
+      await db.doc("leads/" + id).update(patch);
+      lastAction = { id, before, callRef: ref };
+      toast(`${code} logged for ${l.company}${patch.nextCall ? ` · next call ${patch.nextCall}` : ""}`, true);
+    } catch (e) { toast(`Couldn't save: ${e.code || e.message}`); }
+  }
+  async function undo() {
+    if (!lastAction || !db) return;
+    const a = lastAction; lastAction = null;
+    try { await a.callRef.delete(); await db.doc("leads/" + a.id).update(a.before); toast("Undone"); }
+    catch (e) { toast(`Couldn't undo: ${e.code || e.message}`); }
+  }
+
+  async function writeOpener(id) {
+    const l = leads.get(id); if (!l || !sample) return;
+    openerBusy.add(id); renderQueue();
+    const h = heat(l);
+    const prompt = `You write cold-call openers for Yerian, who runs Boltline Growth, a small agency that runs Facebook ads for furnace/heat pump/AC installs inside an HVAC shop's own ad account and texts back every lead and missed call within seconds.
+
+Yerian's voice and script:
+${(settings.voice || DEFAULT_VOICE).slice(0, 6000)}
+
+The shop he is about to call:
+Company: ${l.company}
+City: ${l.city || "?"}, ${l.province || "?"}
+Owner: ${l.owner || "unknown"} (confidence: ${l.ownerConf || "unknown"})
+Google: ${l.rating || "?"} stars, ${l.reviews || "?"} reviews
+Hiring: ${l.hiring || "unknown"}
+Ads: ${l.ads || "unknown"}; Google Ads/LSA: ${l.googleAds || "unknown"}
+Closed weekday evenings: ${l.closedEvenings || "unknown"}
+After-hours check: ${l.afterHours || "not done"}
+Hook (sourced fact): ${l.hook || "none"}
+Heat signals: ${h.reasons.join("; ") || "none"}
+Previous calls: ${l.attempts || 0}; last outcome: ${l.outcome || "none"}; notes: ${(l.notes || "").slice(-600)}
+Today's date: ${todayStr()} (season: ${[10,11,12,1,2,3].includes(new Date().getMonth()+1) ? "furnace and heat pump" : "AC and heat pump"}).
+
+Rules: use only the facts above; if a fact is "unknown", ask about it instead of claiming it. Never quote industry statistics, never promise leads, jobs or revenue. Spoken, short, plain. Use the owner's first name only if confidence is High or Medium.
+
+Reply with only a JSON object:
+{"opener": "2-3 spoken sentences ending with 'Got a sec?'", "problem": "one question built on this shop's strongest signal", "bookIt": "the book-it line with two slots on weekdays", "watchOut": "one short thing to be careful about on this call, or empty string"}`;
+    try {
+      const out = await sample.json(prompt, { cache: false });
+      if (!out || typeof out.opener !== "string") throw { code: "invalid_json" };
+      await db.doc("leads/" + id).update({ opener: { opener: out.opener, problem: String(out.problem || ""), bookIt: String(out.bookIt || ""), watchOut: String(out.watchOut || "") } });
+    } catch (e) {
+      if (e.code === "not_granted" || e.code === "sampling_disabled") { sample = null; toast("Claude isn't allowed for this page, so openers are off."); }
+      else if (e.code === "rate_limited") toast("Too many requests right now. Try again in a minute.");
+      else if (e.code !== "cancelled") toast("Couldn't write the opener. Try again.");
+    } finally { openerBusy.delete(id); renderQueue(); }
+  }
+
+  let draftCtl = null;
+  async function writeDraft() {
+    if (!sample) { $("#dOut").textContent = "Claude isn't available on this page."; return; }
+    const id = $("#dLead").value, l = id ? leads.get(id) : null;
+    const type = $("#dType").value, channel = $("#dChannel").value, notes = $("#dNotes").value.trim();
+    const kinds = { confirm: "a short confirmation of a meeting booked on a phone call", info: "a follow-up with the information the owner asked for on a call", referral: "a friendly follow-up to a warm referral (someone who knows Yerian or was introduced)", fbreply: "a reply to someone who replied to Yerian or asked a question in a Facebook group (help first, no pitch unless they asked)" };
+    const prompt = `Write ${kinds[type]} from Yerian at Boltline Growth, as a ${channel}.
+
+Yerian's voice:
+${(settings.voice || DEFAULT_VOICE).slice(0, 6000)}
+
+${l ? `Recipient: ${l.owner || "the owner"} at ${l.company} (${l.city || ""} ${l.province || ""}). Known facts: hook: ${l.hook || "none"}; hiring: ${l.hiring || "unknown"}; ads: ${l.ads || "unknown"}; call notes: ${(l.notes || "").slice(-800)}` : "Recipient: not on the lead list."}
+What happened / what to include: ${notes || "(nothing extra)"}
+
+Rules: short, plain, spoken; who Yerian is, why he's writing, one useful thing, one easy next step with an easy no. No invented facts, results, familiarity or urgency. Never promise leads, jobs or revenue. ${channel === "Email" ? "End with Yerian's name, Boltline Growth, a line for his phone number as [phone], and: 'If you'd rather I didn't follow up, just reply stop.'" : channel === "Text" ? "Keep it under 320 characters and end with 'Reply STOP to opt out.'" : ""}
+Reply with only the message text${channel === "Email" ? ", starting with a 'Subject:' line" : ""}.`;
+    draftCtl = new AbortController();
+    $("#dGo").disabled = true; $("#dStop").hidden = false; $("#dOut").textContent = "Thinking…"; $("#dMsg").textContent = "";
+    try {
+      await sample(prompt, { signal: draftCtl.signal, cache: false, onText: ({ text }) => { $("#dOut").textContent = text; } });
+    } catch (e) {
+      if (e.code === "cancelled") $("#dOut").textContent = e.text || "Stopped.";
+      else if (e.code === "not_granted" || e.code === "sampling_disabled") { sample = null; $("#dOut").textContent = "Claude isn't allowed for this page, so drafting is off."; }
+      else if (e.code === "rate_limited") $("#dOut").textContent = "Too many requests right now. Try again in a minute.";
+      else $("#dOut").textContent = (e.text ? e.text + "\n\n" : "") + "The draft was interrupted. Press Write draft to try again.";
+    } finally { $("#dGo").disabled = false; $("#dStop").hidden = true; }
+  }
+
+  async function copyText(text, btn) {
+    try { await navigator.clipboard.writeText(text); if (btn) { const o = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = o, 1200); } }
+    catch { toast("Copy didn't work here. Select the text and copy it yourself."); }
+  }
+
+  // ---------- CSV import ----------
+  function parseCSV(text) {
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i+1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(r => r.some(x => x.trim()));
+  }
+  const MAP = [
+    ["company", /^(company|business|name)/i], ["city", /^city/i], ["province", /^(province|prov|state)/i], ["phone", /phone/i],
+    ["owner", /^owner name|^owner$/i], ["ownerConf", /owner confidence/i], ["website", /website|url$/i], ["rating", /rating/i],
+    ["reviews", /review count|reviews/i], ["hiring", /^hiring/i], ["ads", /running ads|^ads/i], ["googleAds", /google ads|lsa/i],
+    ["closedEvenings", /closed.*evening|evening/i], ["afterHours", /after.?hours/i], ["hook", /hook$|call hook/i], ["hookUrl", /hook source/i],
+    ["notes", /^notes/i], ["fit", /fit score|^score/i], ["tier", /^tier/i], ["attempts", /call attempts|attempts/i], ["lastCall", /last call/i],
+    ["outcome", /^outcome/i], ["dnc", /do not call/i]
+  ];
+  async function doImport() {
+    const msg = $("#importMsg");
+    let text = $("#csvPaste").value;
+    const f = $("#csvFile").files[0]; if (f) text = await f.text();
+    const rows = parseCSV(text.replace(/^﻿/, ""));
+    if (rows.length < 2) { msg.textContent = "No rows found. Check the file has a header row."; return; }
+    const head = rows[0], idx = {};
+    head.forEach((h, i) => { const hit = MAP.find(([k, re]) => !(k in idx) && re.test(h.trim()) && !(k === "phone" && /direct/i.test(h)) && !(k === "website" && /source/i.test(h))); if (hit) idx[hit[0]] = i; });
+    if (!("company" in idx)) { msg.textContent = "Couldn't find a Company column."; return; }
+    const seen = new Set([...leads.values()].map(l => (l.company + "|" + (l.phone || "")).toLowerCase()));
+    const defProv = $("#csvProv").value.trim().toUpperCase();
+    let added = 0, skipped = 0;
+    msg.textContent = "Importing…";
+    for (const r of rows.slice(1)) {
+      const l = {}; for (const [k, i] of Object.entries(idx)) l[k] = (r[i] ?? "").trim();
+      if (!l.company) continue;
+      const key = (l.company + "|" + (l.phone || "")).toLowerCase();
+      if (seen.has(key)) { skipped++; continue; }
+      seen.add(key);
+      l.province = (l.province || defProv).toUpperCase();
+      l.attempts = num(l.attempts) || 0; l.fit = num(l.fit) || 0; l.dnc = yes(l.dnc);
+      if (!/^(NA|VM|GK|NI|CB|NF|MTG|CONV)$/i.test(l.outcome || "")) l.outcome = "";
+      l.createdAt = new Date().toISOString();
+      try { await db.collection("leads").add(l); added++; msg.textContent = `Importing… ${added}`; }
+      catch (e) { msg.textContent = `Stopped after ${added}: ${e.code === "quota_exceeded" ? "the lead store is full" : e.code || e.message}`; return; }
+    }
+    msg.textContent = `Added ${added} leads${skipped ? `, skipped ${skipped} already on the list` : ""}.`;
+    $("#csvPaste").value = ""; $("#csvFile").value = "";
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", async e => {
+    const t = e.target.closest("button, tr[data-edit]"); if (!t) return;
+    if (t.dataset.tab) {
+      document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b === t));
+      document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
+      try { localStorage.setItem("tab", t.dataset.tab); } catch {}
+      return;
+    }
+    if (t.id === "undoBtn") return undo();
+    if (t.dataset.copy) return copyText(t.dataset.copy, t);
+    if (t.dataset.opener) return writeOpener(t.dataset.opener);
+    if (t.dataset.log) { const card = t.closest(".card"); card.classList.add("done"); return logCall(card.dataset.id, t.dataset.log); }
+    if (t.dataset.edit) { editingId = t.dataset.edit; return renderEditor(); }
+    if (t.id === "addLead") { editingId = "__new__"; return renderEditor(); }
+    if (t.id === "cancelLead") { editingId = null; return renderEditor(); }
+    if (t.id === "importBtn") { $("#importBox").hidden = !$("#importBox").hidden; return; }
+    if (t.id === "doImport") return doImport();
+    if (t.id === "saveLead") {
+      const data = {}; FIELDS.forEach(([k]) => data[k] = $(`#f-${k}`).value.trim()); data.province = data.province.toUpperCase(); data.dnc = $("#f-dnc").checked;
+      if (!data.company) { $("#leadMsg").textContent = "Company is required."; return; }
+      try {
+        if (editingId === "__new__") { data.attempts = 0; data.createdAt = new Date().toISOString(); await db.collection("leads").add(data); toast(`Added ${data.company}`); }
+        else { await db.doc("leads/" + editingId).update(data); toast(`Saved ${data.company}`); }
+        editingId = null; renderEditor();
+      } catch (err) { $("#leadMsg").textContent = `Couldn't save: ${err.code || err.message}`; }
+      return;
+    }
+    if (t.id === "delLead") {
+      if (t.dataset.confirm !== "1") { t.dataset.confirm = "1"; t.textContent = "Click again to delete"; return; }
+      try { await db.doc("leads/" + editingId).delete(); toast("Lead deleted"); editingId = null; renderEditor(); } catch (err) { $("#leadMsg").textContent = `Couldn't delete: ${err.code || err.message}`; }
+      return;
+    }
+    if (t.id === "dGo") return writeDraft();
+    if (t.id === "dStop") return draftCtl?.abort();
+    if (t.id === "dCopy") return copyText($("#dOut").textContent, t);
+    if (t.id === "saveVoice") {
+      try { const v = $("#voiceText").value; settingsExists ? await db.doc("settings/main").update({ voice: v }) : await db.doc("settings/main").set({ voice: v }); $("#voiceMsg").textContent = "Saved."; }
+      catch (err) { $("#voiceMsg").textContent = `Couldn't save: ${err.code || err.message}`; }
+    }
+  });
+  $("#search").addEventListener("input", renderLeads);
+  $("#heatFilter").addEventListener("change", renderLeads);
+  $("#qn").addEventListener("change", renderQueue);
+  try { const tab = localStorage.getItem("tab"); if (tab) document.querySelector(`nav.tabs button[data-tab="${tab}"]`)?.click(); } catch {}
+  $("#voiceText").value = DEFAULT_VOICE;
+
+  // ---------- boot ----------
+  renderStrip();
+  (async () => {
+    if (!window.claude?.use) { $("#conn").textContent = "Open this in Claude to use it"; $("#queue").innerHTML = `<div class="empty">This app keeps your leads in Claude. Open it from claude.ai.</div>`; return; }
+    db = await claude.use("db");
+    sample = await claude.use("sample");
+    if (!db) { $("#conn").textContent = "Offline"; $("#queue").innerHTML = `<div class="empty">Sign in to claude.ai to load your leads.</div>`; return; }
+    $("#conn").textContent = "Saved to your Claude account";
+    const fail = err => { $("#conn").textContent = "Read-only"; if (err.code !== "revoked") toast(`Lost connection to your data (${err.code}). Reload the page.`); };
+    db.collection("leads").limit(1000).onSnapshot(s => { leads = new Map(s.docs.map(d => [d.id, d.data()])); loaded.leads = true; renderAll(); }, fail);
+    db.collection("calls").limit(1000).onSnapshot(s => { calls = s.docs.map(d => d.data()); loaded.calls = true; renderStrip(); renderQueue(); renderNumbers(); }, fail);
+    db.doc("settings/main").onSnapshot(s => {
+      settingsExists = s.exists;
+      if (s.exists && typeof s.data().voice === "string") { settings = s.data(); if (document.activeElement !== $("#voiceText")) $("#voiceText").value = settings.voice; }
+    }, fail);
+  })();
+})();
+</script>
