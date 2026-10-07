@@ -1,6 +1,6 @@
 ---
 name: find-leads
-description: Sourcing agent. Builds a new list of independent residential HVAC shops for a region, screens them against the Boltline ICP, and writes a CSV the outbound engine can score and queue. Use when Yerian says "find leads", "build a list for <city/region>", "more shops", or the call queue is running dry.
+description: Sourcing agent. Builds a new list of independent residential HVAC shops for a region, screens them against the Boltline ICP, and drops them into the Boltline Outbound app for Yerian to add with one click. Use when Yerian says "find leads", "build a list for <city/region>", "more shops", or the call queue is running dry.
 ---
 
 # Find leads (sourcing agent)
@@ -8,7 +8,7 @@ description: Sourcing agent. Builds a new list of independent residential HVAC s
 Replaces TryGTM's "find people matching your ICP". Quality over volume: a few hundred real local owners beat a 700M-contact database.
 
 ## Input
-Region and cities (e.g. "Lower Mainland: Surrey, Langley, Burnaby"), target count (default 50), and any existing lead files to de-duplicate against (always include every file in `outbound/config.json` → `lead_files`).
+Region and cities (e.g. "Lower Mainland: Surrey, Langley, Burnaby"), target count (default 50), and any existing lead files to de-duplicate against (always check the app's `leads` collection).
 
 ## ICP (screen every company)
 **Include:** independent, owner-run, **residential** HVAC (furnace, heat pump, AC installs) in Canada outside Quebec. About 3–15 technicians and roughly $1M–$5M revenue.
@@ -33,11 +33,13 @@ For each included shop, fill what you can find and **cite a source URL for every
 
 "Not found" means unknown, never "no". Never invent a number, a name or a hook.
 
-## Output
-1. `13 — Outbound/HVAC_Leads_<REGION>_<YYYY-MM-DD>.csv`, using the **same columns as the existing lead CSV** (open it and copy the header). Status = `Not called`.
-2. `..._report.md` (counts, top 10, things to check before calling) and `..._excluded_log.md` (company, reason, source).
-3. Add the new CSV path to `lead_files` in `outbound/config.json`.
-4. Run `python3 outbound/engine.py score` and report the HOT/WARM/COLD split.
+## Output (goes straight into the Boltline Outbound app)
+1. Read the existing leads first so you don't duplicate: `ArtifactData` action `list` on https://claude.ai/artifact/K4KwGv5bJSwBrWUoFcoJfW, collection `leads` (page with `query.cursor`). Match on company name and phone.
+2. Write ALL new shops as ONE document in the `imports` collection (doc id like `surrey-2026-10-07`):
+   `{"source": "<region> agent run <date>", "createdAt": "<ISO time>", "status": "pending", "rows": [ ...leads ]}`
+   Each row uses the app's field names: `company, city, province, phone, owner, ownerConf, email, website, facebook, rating, reviews, hiring, ads, googleAds, closedEvenings, hook, hookUrl, angle, notes, tier, source, attempts: 0, stage: "new"`. Put source links and dates inside the field text (e.g. `"Y - 'Installer' posted Oct 2 (Indeed <url>)"`).
+3. Yerian presses **Add them** on the Today tab to bring them in. Tell him how many you found, the HOT/WARM split by the app's heat rules, and the top 10 with their hooks.
+4. Keep an exclusion log (company, reason, source) in your reply or in `13 — Outbound/` if he asks for a file.
 
 ## Rules
 - Business phone numbers and owner names only from public business sources. No people-search sites, no personal cell numbers, no data brokers.

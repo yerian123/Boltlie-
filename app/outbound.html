@@ -2,12 +2,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: a dispatcher's desk. Top bar with tabs; Today = numbers strip + call queue; heat reads like a thermostat (cold blue → warm amber → hot flame). */
+/* Layout: a dispatcher's desk. Top bar with tabs; Today = numbers + call queue; Pipeline = stage columns; a lead opens in a side drawer with its message studio and timeline. Heat reads like a thermostat. */
 :root {
-  --bg: #eef2f4; --surface: #ffffff; --raised: #f6f8f9; --ink: #13212b; --muted: #5a6a76; --line: #d4dce1;
+  --bg: #eef2f4; --surface: #ffffff; --raised: #f5f7f8; --ink: #13212b; --muted: #5a6a76; --line: #d4dce1;
   --accent: #0b6676; --accent-ink: #ffffff; --accent-soft: #dcecef;
   --hot: #c8401a; --hot-soft: #fbe3da; --warm: #a86f00; --warm-soft: #f8ecd2; --cold: #2f6f9f; --cold-soft: #dde9f3;
-  --good: #1d7a46; --bad: #b3261e; --bad-soft: #f9dedb;
+  --good: #1d7a46; --good-soft: #dcf1e4; --bad: #b3261e; --bad-soft: #f9dedb; --shade: rgba(10, 20, 28, .35);
   --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
   --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -17,16 +17,16 @@
   --bg: #0e161c; --surface: #15212a; --raised: #1a2832; --ink: #e2eaee; --muted: #93a5b1; --line: #263641;
   --accent: #52b6c6; --accent-ink: #062027; --accent-soft: #163640;
   --hot: #ff7c50; --hot-soft: #3a1d14; --warm: #e8b34d; --warm-soft: #33280f; --cold: #6cb0e4; --cold-soft: #142c3e;
-  --good: #5cc98a; --bad: #ff8a80; --bad-soft: #3a1714; color-scheme: dark } }
+  --good: #5cc98a; --good-soft: #12301f; --bad: #ff8a80; --bad-soft: #3a1714; --shade: rgba(0, 0, 0, .55); color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0e161c; --surface: #15212a; --raised: #1a2832; --ink: #e2eaee; --muted: #93a5b1; --line: #263641;
   --accent: #52b6c6; --accent-ink: #062027; --accent-soft: #163640;
   --hot: #ff7c50; --hot-soft: #3a1d14; --warm: #e8b34d; --warm-soft: #33280f; --cold: #6cb0e4; --cold-soft: #142c3e;
-  --good: #5cc98a; --bad: #ff8a80; --bad-soft: #3a1714; color-scheme: dark }
+  --good: #5cc98a; --good-soft: #12301f; --bad: #ff8a80; --bad-soft: #3a1714; --shade: rgba(0, 0, 0, .55); color-scheme: dark }
 
 * { box-sizing: border-box }
-body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
-.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body) }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 0 56px }
 button, input, select, textarea { font: inherit; color: inherit }
 button { cursor: pointer }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
@@ -34,11 +34,11 @@ a { color: var(--accent) }
 .mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
 .muted { color: var(--muted) }
 .small { font-size: 13px }
+p { margin: 0 }
 
-/* top bar */
 header.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line) }
 header.bar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding-block: 12px }
-.brand { font: 700 24px/1 var(--display); letter-spacing: .02em; text-transform: uppercase; display: flex; align-items: baseline; gap: 8px }
+.brand { font: 700 24px/1 var(--display); letter-spacing: .02em; text-transform: uppercase }
 .brand span { color: var(--accent) }
 nav.tabs { display: flex; gap: 4px; flex-wrap: wrap }
 nav.tabs button { background: none; border: 1px solid transparent; border-radius: var(--r); padding: 6px 12px; color: var(--muted); font-weight: 500 }
@@ -49,7 +49,6 @@ h2 { font: 700 26px/1.1 var(--display); text-transform: uppercase; letter-spacin
 h3 { font: 600 15px/1.3 var(--body); margin: 0 }
 .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
 
-/* numbers strip */
 .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 20px }
 .gauge { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 6px }
 .gauge .num { font: 700 30px/1 var(--display); font-variant-numeric: tabular-nums }
@@ -57,15 +56,17 @@ h3 { font: 600 15px/1.3 var(--body); margin: 0 }
 .track { height: 6px; background: var(--raised); border-radius: 3px; overflow: hidden }
 .track i { display: block; height: 100%; background: var(--accent); border-radius: 3px }
 .alert { margin-top: 12px; padding: 12px 14px; border-radius: var(--r); background: var(--bad-soft); color: var(--bad); font-weight: 500 }
+.banner { margin-top: 16px; padding: 14px 16px; border-radius: var(--r); background: var(--accent-soft); display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between }
 
-/* queue */
-.queue-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px }
+.head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px }
 .queue { display: grid; gap: 12px }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0 }
-.card.done { opacity: .55 }
+.card.done { opacity: .5 }
 .card-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px }
-.card-top h3 { font: 700 22px/1.1 var(--display); letter-spacing: .01em }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 20px }
+.card-top h3, .drawer h3.title { font: 700 22px/1.1 var(--display); letter-spacing: .01em }
+.linkish { background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit }
+.linkish:hover h3 { color: var(--accent) }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 20px }
 .fact { min-width: 0 }
 .fact .v { overflow-wrap: anywhere }
 .hook { background: var(--raised); border-radius: var(--r); padding: 10px 12px; overflow-wrap: anywhere }
@@ -74,49 +75,64 @@ h3 { font: 600 15px/1.3 var(--body); margin: 0 }
 .chip.WARM { background: var(--warm-soft); color: var(--warm) }
 .chip.COLD { background: var(--cold-soft); color: var(--cold) }
 .chip.plain { background: var(--raised); color: var(--muted) }
-.chip.vm { background: var(--accent-soft); color: var(--accent) }
-.phone { font: 500 18px var(--mono); }
+.chip.acc { background: var(--accent-soft); color: var(--accent) }
+.chip.good { background: var(--good-soft); color: var(--good) }
+.chip.bad { background: var(--bad-soft); color: var(--bad) }
+.phone { font: 500 18px var(--mono) }
 .copy { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 2px 8px; font-size: 12px; margin-left: 6px }
-
 .opener { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; display: grid; gap: 6px; overflow-wrap: anywhere }
-.opener p { margin: 0 }
 .codes { display: flex; flex-wrap: wrap; gap: 6px }
 .codes button { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 6px 10px; font: 500 13px var(--mono) }
 .codes button:hover { border-color: var(--accent) }
 .codes button.win { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
-.log-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px }
+details summary { cursor: pointer; color: var(--muted); font-size: 13px }
+.log-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 8px }
 input[type=text], input[type=date], input[type=search], select, textarea {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 7px 10px; width: 100%; min-width: 0 }
-textarea { resize: vertical; min-height: 80px }
+textarea { resize: vertical; min-height: 80px; line-height: 1.5 }
 .btn { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 7px 14px; font-weight: 500 }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.btn.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent) }
 .btn:disabled { opacity: .5; cursor: default }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
 .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 28px; text-align: center; color: var(--muted) }
 
-/* leads table */
 .tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r) }
 table { border-collapse: collapse; width: 100%; font-size: 14px }
 th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap }
 th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--raised) }
-tbody tr { cursor: pointer }
-tbody tr:hover { background: var(--raised) }
+tbody tr[data-open] { cursor: pointer }
+tbody tr[data-open]:hover { background: var(--raised) }
 td.num { font-family: var(--mono); font-variant-numeric: tabular-nums }
 
-/* editor */
-.editor { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; margin-bottom: 16px }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px }
-.field { display: grid; gap: 4px; min-width: 0 }
-.field label { font-size: 12px; color: var(--muted); font-weight: 500 }
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px }
+.col { background: var(--raised); border-radius: var(--r); padding: 10px; display: grid; gap: 8px; align-content: start; min-width: 0 }
+.col-head { display: flex; justify-content: space-between; align-items: baseline; font: 700 16px var(--display); text-transform: uppercase; letter-spacing: .03em }
+.mini { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; display: grid; gap: 4px; text-align: left; width: 100% }
+.mini:hover { border-color: var(--accent) }
+.mini b { overflow-wrap: anywhere }
 
-.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px }
-@media (max-width: 760px) { .two { grid-template-columns: 1fr } }
-.out { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; min-height: 160px; overflow-wrap: anywhere }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px }
+.field { display: grid; gap: 4px; min-width: 0 }
+.field label, .field .lbl { font-size: 12px; color: var(--muted); font-weight: 500 }
 .lock { background: var(--raised); border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--muted) }
+.lock.stop { background: var(--bad-soft); color: var(--bad) }
+.lock.ok { background: var(--good-soft); color: var(--good) }
 ul.obj { margin: 0; padding-left: 18px; display: grid; gap: 4px }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: var(--r); display: flex; gap: 12px; align-items: center; z-index: 10; max-width: calc(100% - 32px) }
+
+.shade { position: fixed; inset: 0; background: var(--shade); z-index: 20 }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(720px, 100%); background: var(--bg); z-index: 21; overflow-y: auto;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(32px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 16px; align-content: start; border-left: 1px solid var(--line) }
+.studio-out { min-height: 220px; font-size: 14px }
+.timeline { display: grid; gap: 8px }
+.tl { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; font-size: 14px }
+.tl .when { color: var(--muted); font-family: var(--mono); font-size: 12px; padding-top: 2px }
+.tl .what { overflow-wrap: anywhere; white-space: pre-wrap }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: var(--r); display: flex; gap: 12px; align-items: center; z-index: 30; max-width: calc(100% - 32px) }
 .toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: var(--r); padding: 2px 10px }
-@media (prefers-reduced-motion: no-preference) { .card { transition: opacity .2s } }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px }
+pre.prompt { white-space: pre-wrap; background: var(--raised); border-radius: var(--r); padding: 12px; font: 13px/1.5 var(--mono); margin: 0; overflow-wrap: anywhere }
 </style>
 
 <header class="bar">
@@ -124,158 +140,152 @@ ul.obj { margin: 0; padding-left: 18px; display: grid; gap: 4px }
     <div class="brand">Boltline <span>Outbound</span></div>
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="today" aria-selected="true">Today</button>
+      <button role="tab" data-tab="pipeline" aria-selected="false">Pipeline</button>
       <button role="tab" data-tab="leads" aria-selected="false">Leads</button>
-      <button role="tab" data-tab="drafts" aria-selected="false">Drafts</button>
       <button role="tab" data-tab="numbers" aria-selected="false">Numbers</button>
-      <button role="tab" data-tab="voice" aria-selected="false">Voice</button>
+      <button role="tab" data-tab="playbook" aria-selected="false">Playbook</button>
     </nav>
     <div class="status-dot" id="conn">Connecting…</div>
   </div>
 </header>
 
 <main class="wrap">
-  <!-- TODAY -->
   <section data-panel="today">
     <div class="strip" id="strip"></div>
     <div id="kill"></div>
-    <div class="queue-head">
+    <div id="inbox"></div>
+    <div class="head">
       <h2 id="queueTitle">Today's calls</h2>
-      <div class="row small muted"><label for="qn">Leads</label><input id="qn" type="text" inputmode="numeric" style="width:64px" value="15"></div>
+      <div class="row small">
+        <label for="qn" class="muted">How many</label><input id="qn" type="text" inputmode="numeric" style="width:60px" value="15">
+        <button class="btn" id="bulkOpeners" hidden>Write openers for all</button>
+      </div>
     </div>
     <div class="queue" id="queue"><div class="empty">Loading your leads…</div></div>
   </section>
 
-  <!-- LEADS -->
+  <section data-panel="pipeline" hidden>
+    <h2>Pipeline</h2>
+    <p class="muted small" style="margin-bottom:12px">Every lead sits in one stage. Logging a call or a sent message moves it forward on its own. Open a lead to move it by hand.</p>
+    <div class="board" id="board"></div>
+  </section>
+
   <section data-panel="leads" hidden>
     <h2>Leads</h2>
     <div class="row" style="margin-bottom:12px">
-      <input id="search" type="search" placeholder="Search company, city, owner" style="max-width:280px">
-      <select id="heatFilter" style="max-width:150px"><option value="">All heat</option><option>HOT</option><option>WARM</option><option>COLD</option></select>
-      <button class="btn primary" id="addLead">Add lead</button>
-      <button class="btn" id="importBtn">Import CSV</button>
+      <input id="search" type="search" placeholder="Search company, city, owner" style="max-width:260px">
+      <select id="fHeat" style="max-width:130px"><option value="">All heat</option><option>HOT</option><option>WARM</option><option>COLD</option></select>
+      <select id="fStage" style="max-width:170px"></select>
+      <select id="fSource" style="max-width:260px"></select>
+      <button class="btn primary" id="addLead">Add a lead</button>
+      <button class="btn" id="importBtn">Bring in a spreadsheet</button>
     </div>
-    <div id="importBox" class="editor" hidden>
-      <h3>Import a lead CSV</h3>
-      <p class="small muted" style="margin:0">Export your Google Sheet as CSV, then pick the file or paste it. Columns are matched by name (Company, City, Province, Main phone, Owner name, Google rating, Google review count, Hiring?, Running ads?, Call hook…). Rows whose company and phone already exist are skipped.</p>
-      <input id="csvFile" type="file" accept=".csv,text/csv">
-      <textarea id="csvPaste" placeholder="…or paste CSV here"></textarea>
-      <div class="field" style="max-width:200px"><label for="csvProv">Province if the file has none</label><input id="csvProv" type="text" value="BC"></div>
-      <div class="row"><button class="btn primary" id="doImport">Import</button><span class="small muted" id="importMsg"></span></div>
+    <div class="panel" id="importBox" hidden style="margin-bottom:16px">
+      <h3>Bring leads in from a spreadsheet</h3>
+      <div class="grid2">
+        <div class="field">
+          <span class="lbl">Option 1 · From Google Sheets (easiest)</span>
+          <ol class="steps small"><li>Open the sheet in Google Sheets.</li><li>Copy the link from your browser's address bar.</li><li>Paste it here and press Bring it in. The first time, Claude asks to use your Google Drive.</li></ol>
+          <input id="sheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/…">
+          <div class="row"><button class="btn primary" id="doSheet">Bring it in</button></div>
+        </div>
+        <div class="field">
+          <span class="lbl">Option 2 · From a file on your computer</span>
+          <p class="small muted">In Google Sheets or Excel: File → Download → "Comma-separated values (.csv)". That's just your spreadsheet saved as a simple file. Pick it here.</p>
+          <input id="csvFile" type="file" accept=".csv,text/csv">
+          <div class="row"><button class="btn" id="doFile">Bring it in</button></div>
+        </div>
+      </div>
+      <div class="field" style="max-width:220px"><label for="csvProv">Province if the sheet doesn't say</label><input id="csvProv" type="text" value="BC"></div>
+      <p class="small muted" id="importMsg">Columns are matched by name (Company, City, Phone, Owner, Rating, Reviews, Angle, Hours, Hook, Notes…). Shops already in your list are skipped.</p>
     </div>
-    <div id="editorBox"></div>
     <div class="tablebox"><table>
-      <thead><tr><th>Company</th><th>City</th><th>Heat</th><th>Calls</th><th>Last outcome</th><th>Next call</th><th>Owner</th></tr></thead>
+      <thead><tr><th>Company</th><th>City</th><th>Heat</th><th>Stage</th><th>Calls</th><th>Last touch</th><th>Next</th><th>Source</th></tr></thead>
       <tbody id="leadRows"></tbody>
     </table></div>
-    <p class="small muted" id="leadCount"></p>
+    <p class="small muted" id="leadCount" style="margin-top:8px"></p>
   </section>
 
-  <!-- DRAFTS -->
-  <section data-panel="drafts" hidden>
-    <h2>Drafts</h2>
-    <div class="two">
-      <div style="display:grid;gap:12px;align-content:start">
-        <div class="field"><label for="dLead">Who is it for?</label><select id="dLead"></select></div>
-        <div class="field"><label for="dType">What kind of message?</label>
-          <select id="dType">
-            <option value="confirm">Meeting confirmation (after booking on a call)</option>
-            <option value="info">Follow-up they asked for on a call</option>
-            <option value="referral">Warm-referral follow-up</option>
-            <option value="fbreply">Reply to someone in a Facebook group</option>
-            <option value="cold" disabled>Cold email (locked until Gate 2)</option>
-          </select></div>
-        <div class="field"><label for="dChannel">Channel</label><select id="dChannel"><option>Email</option><option>Text</option><option>Facebook DM</option></select></div>
-        <div class="field"><label for="dNotes">What happened / what to include</label><textarea id="dNotes" placeholder="e.g. Talked to Nathan, booked Thu 4:15 PT. He asked how the text-back works."></textarea></div>
-        <div class="lock">Cold email to people who never engaged stays locked until Gate 2 and a mailing address exist (CASL). Every draft is for you to read and send yourself.</div>
-        <div class="row"><button class="btn primary" id="dGo">Write draft</button><button class="btn" id="dStop" hidden>Stop</button></div>
-      </div>
-      <div style="display:grid;gap:8px;align-content:start;min-width:0">
-        <div class="label">Draft</div>
-        <div class="out" id="dOut">Pick a lead and a message type, add what happened, then press Write draft.</div>
-        <div class="row"><button class="btn" id="dCopy">Copy</button><span class="small muted" id="dMsg"></span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- NUMBERS -->
   <section data-panel="numbers" hidden>
     <h2>Numbers</h2>
     <div id="numbers"></div>
   </section>
 
-  <!-- VOICE -->
-  <section data-panel="voice" hidden>
-    <h2>Your voice</h2>
-    <p class="muted" style="max-width:65ch">Openers and drafts are written from this. Paste 10–20 real texts, DMs or call lines you've written at the bottom; it makes everything sound more like you.</p>
-    <textarea id="voiceText" style="min-height:420px"></textarea>
-    <div class="row" style="margin-top:8px"><button class="btn primary" id="saveVoice">Save voice</button><span class="small muted" id="voiceMsg"></span></div>
+  <section data-panel="playbook" hidden>
+    <h2>Playbook</h2>
+    <p class="muted" style="max-width:70ch;margin-bottom:12px">Every opener, email, DM, text and video script is written from what's here. When you learn something new (a pain point, an objection, a line that worked), add it and save. Paste your pain-points file into the Playbook box.</p>
+    <div class="grid2">
+      <div class="field"><label for="pbText">Business playbook: offer, ICP, pain points, psychology, rules</label><textarea id="pbText" style="min-height:460px"></textarea></div>
+      <div class="field"><label for="voiceText">Your voice: how you talk, your script, real messages you've sent</label><textarea id="voiceText" style="min-height:460px"></textarea></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h3>Cold email</h3>
+      <div class="grid2">
+        <div class="field"><label for="mailAddr">Mailing address (required by Canadian anti-spam law, CASL, in every cold email; a PO box works)</label><input id="mailAddr" type="text" placeholder="PO Box …, City, BC"></div>
+        <div class="field"><span class="lbl">Status</span><label class="row small"><input type="checkbox" id="coldOn"> Unlock cold email drafts</label><p class="small muted">Your own plan says cold email starts after Gate 2. This switch only works once a mailing address is filled in.</p></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="savePb">Save playbook</button><span class="small muted" id="pbMsg"></span></div>
+
+    <h2>Your agents</h2>
+    <p class="muted" style="max-width:70ch;margin-bottom:12px">Some jobs need the open web (finding new shops, checking who's hiring or running ads). This page can't browse, so those agents run in Claude Code and drop their results straight into this app. New leads show up on Today as "ready to add".</p>
+    <div class="panel">
+      <div class="field"><span class="lbl">Find new leads · paste into Claude Code</span><pre class="prompt" id="pFind"></pre><div class="row"><button class="btn" data-copyel="pFind">Copy</button></div></div>
+      <div class="field"><span class="lbl">Refresh buying signals · paste into Claude Code weekly</span><pre class="prompt" id="pSignals"></pre><div class="row"><button class="btn" data-copyel="pSignals">Copy</button></div></div>
+    </div>
   </section>
 </main>
+
+<div class="shade" id="shade" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Lead"></aside>
 <div class="toast" id="toast" hidden></div>
 
 <script>
 (() => {
-  // ---------- constants ----------
+  const APP_URL = "https://claude.ai/artifact/K4KwGv5bJSwBrWUoFcoJfW";
   const CODES = [["NA","No answer"],["VM","Voicemail"],["GK","Gatekeeper"],["CONV","Talked, no decision"],["CB","Callback"],["NF","Not a fit"],["NI","Not interested"],["MTG","Meeting booked"]];
   const CONVERSATION = new Set(["NI","CB","NF","MTG","CONV"]);
-  const CLOSED = new Set(["NI","NF","MTG"]);
   const RETRY = { NA: 3, VM: 3, GK: 2, CONV: 7 };
   const MAX_ATTEMPTS = 5, VM_ATTEMPT = 3;
-  const MY_TZ = "America/Vancouver";
-  const MY_WINDOWS = [["09:00","10:00"],["16:00","17:30"]];
+  const MY_TZ = "America/Vancouver", MY_WINDOWS = [["09:00","10:00"],["16:00","17:30"]];
   const PROV_TZ = { BC:"America/Vancouver", AB:"America/Edmonton", SK:"America/Regina", MB:"America/Winnipeg", ON:"America/Toronto", NB:"America/Moncton", NS:"America/Halifax", PE:"America/Halifax", NL:"America/St_Johns" };
-  const DEFAULT_VOICE = `HOW I SOUND
-- Short and spoken. Write it how I'd say it on the phone.
-- Straight to the reason: "I'll be quick. The reason I'm calling is..."
-- Plain words. No "leverage", "solutions", "game-changer", "hope this finds you well", no hype.
-- Specific to the shop: their city, their hook, the season (furnace/heat pump Oct-Mar, AC Apr-Sep).
-- Honest. Say what's not promised. Tell the truth if asked anything, including my age.
-- One ask at a time with an easy out: "If it's not a fit, I'll tell you."
+  const STAGES = [["new","New"],["contacted","Contacted"],["talking","Talking"],["meeting","Meeting booked"],["proposal","Proposal sent"],["won","Won"],["lost","Lost"]];
+  const STAGE_RANK = Object.fromEntries(STAGES.map(([k], i) => [k, i]));
+  const STAGE_NAME = Object.fromEntries(STAGES);
+  const CHANNELS = [["call","Call opener"],["loom","Loom video"],["email","Email"],["facebook","Facebook DM"],["sms","Text (SMS)"],["linkedin","LinkedIn"]];
+  const KINDS = [["first","First touch"],["followup","Follow-up after no reply"],["aftercall","After a call (they asked for info)"],["afterloom","Sending a Loom video"],["confirm","Meeting confirmation"],["breakup","Last follow-up (closing the loop)"]];
+  const TOUCH_CH = [["call","Call"],["email","Email"],["facebook","Facebook"],["sms","Text"],["loom","Loom"],["linkedin","LinkedIn"],["inperson","In person"],["note","Note"]];
 
-CALL FRAMEWORK
-Opener -> Problem -> Problem statement -> Solution -> Desired result -> Temp check -> Book it.
-Opener: "Hey [Name], Yerian with Boltline Growth. I'll be quick. The reason I'm calling is I work with HVAC shops around [city] on getting more install jobs. Got a sec?"
-Problem: "From what I'm seeing with HVAC shops around here, most run almost entirely on referrals and Google. So when referrals slow down, the install schedule gets thin. Is that something you're dealing with, or are you pretty booked up?"
-Book it: "Easiest thing is 15 minutes where I show you exactly what it'd look like for [Company]. If it's not a fit, I'll tell you. Does [day] at [time] or [day] at [time] work better?"
-What it is: "I run Facebook ads for furnace and heat pump installs in your area, inside your own ad account. Every lead and every call you miss gets a text back in seconds, and quotes that didn't book get followed up. You pay Facebook directly for the ads."
-
-NEVER SAY
-- Promises of leads, jobs or revenue, or "close rates double"
-- Industry stats as fact ("34% of your calls go unanswered")
-- Blanket rebate claims
-- Fake familiarity or fake urgency
-
-REAL SAMPLES (paste my own messages here)
-`;
-
-  // ---------- state ----------
-  let db = null, sample = null;
-  let leads = new Map();      // id -> data
-  let calls = [];             // call docs
-  let settings = { voice: DEFAULT_VOICE };
-  let settingsExists = false;
-  let loaded = { leads: false, calls: false };
-  let editingId = null;
-  let lastAction = null;      // for undo
-  const openerBusy = new Set();
-  const logOpen = new Set();
+  let db = null, sample = null, mcp = null;
+  let leads = new Map(), touches = [], imports = [];
+  let settings = { playbook: "", voice: "", mailingAddress: "", coldEmailUnlocked: false };
+  let loaded = false, openId = null, lastAction = null, importing = false;
+  const busy = new Set();
+  let studio = { channel: "call", kind: "first", text: "", ctl: null, writing: false };
 
   const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
   const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); };
   const num = (t, f) => { const m = String(t ?? "").match(/\d[\d,]*(\.\d+)?/); if (!m) return null; const v = parseFloat(m[0].replace(/,/g,"")); return f ? v : Math.round(v); };
   const yes = t => String(t ?? "").trim().toUpperCase().startsWith("Y");
+  const digits = s => String(s ?? "").replace(/\D/g, "");
+  const slug = s => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "lead";
+  const leadKey = l => (slug(l.company) + "|" + digits(l.phone).slice(-7));
+  const stageOf = l => l.dnc && l.stage !== "won" ? "lost" : (l.stage || (["MTG"].includes(l.outcome) ? "meeting" : ["NI","NF"].includes(l.outcome) ? "lost" : ["CONV","CB"].includes(l.outcome) ? "talking" : (l.attempts > 0 ? "contacted" : "new")));
+  const sourceOf = l => l.source || (l.province === "ON" ? "Ontario GTA list (Sep 29)" : "Added by hand");
+  const season = () => [10,11,12,1,2,3].includes(new Date().getMonth() + 1) ? "furnace and heat pump season (Oct–Mar)" : "AC and heat pump season (Apr–Sep)";
 
   // ---------- heat ----------
   function heat(l) {
     let s = 0; const r = [];
     const ads = String(l.ads ?? "");
-    if (yes(l.googleAds) || /^\s*(Google|LSA)/i.test(ads)) { s += 3; r.push("buys Google/LSA leads +3"); }
-    if (/^\s*Meta/i.test(ads)) r.push("running Meta ads (check if agency-run)");
+    if (yes(l.googleAds) || /^\s*(Google|LSA)/i.test(ads)) { s += 3; r.push("pays for Google/LSA leads +3"); }
+    if (/^\s*Meta/i.test(ads)) r.push("running Facebook ads (check if an agency runs them)");
     if (yes(l.hiring)) { s += 2; r.push("hiring now +2"); }
     if (yes(l.closedEvenings)) { s += 2; r.push("closed weekday evenings +2"); }
-    if (/^(VM|NA)/i.test(String(l.afterHours ?? ""))) { s += 2; r.push("after-hours call unanswered +2"); }
+    if (/^(VM|NA)/i.test(String(l.afterHours ?? ""))) { s += 2; r.push("after-hours call went unanswered +2"); }
     const rv = num(l.reviews), rt = num(l.rating, true);
     if (rv != null) {
       if (rv > 1000) { s -= 3; r.push(`${rv} reviews, may be too big −3`); }
@@ -287,7 +297,7 @@ REAL SAMPLES (paste my own messages here)
     return { score: s, level: s >= 5 ? "HOT" : s >= 3 ? "WARM" : "COLD", reasons: r };
   }
 
-  // ---------- time windows ----------
+  // ---------- time ----------
   function tzOffsetMin(tz, ms) {
     const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", second:"2-digit" }).formatToParts(new Date(ms)).map(x => [x.type, x.value]));
     return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ms) / 60000;
@@ -303,252 +313,379 @@ REAL SAMPLES (paste my own messages here)
     if (!tz) return { text: "Unknown province: check their local time first", ok: true };
     const day = todayStr(), dow = new Date(day + "T12:00:00").getDay(), weekend = dow === 0 || dow === 6;
     const [lo, hi] = weekend ? ["10:00","18:00"] : ["09:00","21:30"];
-    let allOk = true;
+    let ok = true;
     const parts = MY_WINDOWS.map(([a,b]) => {
       const A = fmt(zonedMs(day, a, MY_TZ), tz), B = fmt(zonedMs(day, b, MY_TZ), tz);
-      const ok = A >= lo && B <= hi; if (!ok) allOk = false;
-      return tz === MY_TZ ? `${a}–${b}` : `${a}–${b} yours = ${A}–${B} theirs${ok ? "" : " (outside legal hours)"}`;
+      const fine = A >= lo && B <= hi; if (!fine) ok = false;
+      return tz === MY_TZ ? `${a}–${b}` : `${a}–${b} yours = ${A}–${B} theirs${fine ? "" : " (outside legal hours)"}`;
     });
-    return { text: parts.join(" · "), ok: allOk };
+    return { text: parts.join(" · "), ok };
   }
 
-  // ---------- queue ----------
+  // ---------- derived ----------
+  const leadTouches = id => touches.filter(t => t.leadId === id).sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
   function callable(l, today) {
     if (l.dnc) return false;
-    if (CLOSED.has(String(l.outcome ?? "").toUpperCase())) return false;
-    if ((l.attempts || 0) >= MAX_ATTEMPTS) return false;
+    const st = stageOf(l);
+    if (["lost","won","meeting","proposal"].includes(st) && !(l.nextCall && l.nextCall <= today)) return false;
+    if (["lost","won"].includes(st)) return false;
+    if ((l.attempts || 0) >= MAX_ATTEMPTS && st !== "talking") return false;
     return !l.nextCall || l.nextCall <= today;
   }
   function buildQueue(n) {
     const today = todayStr();
     return [...leads.entries()].filter(([, l]) => callable(l, today)).map(([id, l]) => ({ id, l, h: heat(l) }))
       .sort((a, b) => {
-        const ca = a.l.outcome === "CB" ? 0 : 1, cb = b.l.outcome === "CB" ? 0 : 1;
-        return ca - cb || b.h.score - a.h.score || (a.l.attempts||0) - (b.l.attempts||0) || (b.l.fit||0) - (a.l.fit||0);
+        const fa = a.l.nextCall && a.l.nextCall <= today ? 0 : 1, fb = b.l.nextCall && b.l.nextCall <= today ? 0 : 1;
+        const ta = a.l.tier || "B", tb = b.l.tier || "B";
+        return fa - fb || b.h.score - a.h.score || ta.localeCompare(tb) || (a.l.attempts||0) - (b.l.attempts||0) || (num(b.l.reviews)||0) - (num(a.l.reviews)||0);
       }).slice(0, n);
   }
-
-  // ---------- stats ----------
   function stats() {
-    const today = todayStr(), d = new Date(today + "T12:00:00"), dow = (d.getDay() + 6) % 7;
-    const weekStart = addDays(today, -dow);
+    const today = todayStr(), dow = (new Date(today + "T12:00:00").getDay() + 6) % 7, weekStart = addDays(today, -dow);
+    const calls = touches.filter(t => t.channel === "call");
     const count = arr => ({ dials: arr.length, convs: arr.filter(c => CONVERSATION.has(c.code)).length, mtgs: arr.filter(c => c.code === "MTG").length });
     return { all: count(calls), week: count(calls.filter(c => c.date >= weekStart)), today: count(calls.filter(c => c.date === today)) };
   }
 
   // ---------- render: today ----------
-  function gauge(label, val, target, unit = "") {
+  function gauge(label, val, target) {
     const pct = Math.min(100, target ? (val / target) * 100 : 0);
-    return `<div class="gauge"><div class="label">${esc(label)}</div><div class="num">${val}<small> / ${target}${unit}</small></div><div class="track"><i style="width:${pct}%"></i></div></div>`;
+    return `<div class="gauge"><div class="label">${esc(label)}</div><div class="num">${val}<small> / ${target}</small></div><div class="track"><i style="width:${pct}%"></i></div></div>`;
   }
   function renderStrip() {
     const s = stats();
     $("#strip").innerHTML = gauge("Dials this week", s.week.dials, 75) + gauge("Owner conversations", s.week.convs, 5) + gauge("Meetings this week", s.week.mtgs, 1) + gauge("Validation dials", s.all.dials, 300);
     $("#kill").innerHTML = s.all.dials >= 300 && s.all.mtgs === 0 ? `<div class="alert">Kill switch: ${s.all.dials} dials and no meetings. Stop dialing and fix the opener or the list first. Check the objections on the Numbers tab.</div>` : "";
   }
+  function renderInbox() {
+    const pend = imports.filter(i => i.data.status === "pending" && Array.isArray(i.data.rows));
+    $("#inbox").innerHTML = pend.map(i => {
+      const n = i.data.rows.length;
+      return `<div class="banner"><div><b>${n} new leads ready to add</b><div class="small muted">From: ${esc(i.data.source || "an agent run")}. Shops already in your list get skipped.</div></div>
+        <div class="row"><span class="small muted" data-impmsg="${esc(i.id)}"></span><button class="btn primary" data-ingest="${esc(i.id)}" ${importing ? "disabled" : ""}>Add them</button><button class="btn" data-dismiss="${esc(i.id)}" ${importing ? "disabled" : ""}>Dismiss</button></div></div>`;
+    }).join("");
+  }
   function renderQueue() {
     const box = $("#queue");
-    if (!loaded.leads) return;
-    if (!leads.size) { box.innerHTML = `<div class="empty">No leads yet. Go to <b>Leads</b> to import a CSV or add one.</div>`; return; }
-    const n = Math.max(1, Math.min(100, parseInt($("#qn").value) || 15));
+    if (!loaded) return;
+    $("#bulkOpeners").hidden = !sample;
+    if (!leads.size) { box.innerHTML = `<div class="empty">No leads yet. Add the waiting leads above, or go to <b>Leads</b> and bring in a spreadsheet.</div>`; return; }
+    const n = Math.max(1, Math.min(60, parseInt($("#qn").value) || 15));
     const q = buildQueue(n), today = todayStr();
-    const doneToday = calls.filter(c => c.date === today).length;
+    const doneToday = touches.filter(c => c.date === today && c.channel === "call").length;
     $("#queueTitle").textContent = `Today's calls · ${q.length} to dial` + (doneToday ? ` · ${doneToday} logged` : "");
-    if (!q.length) { box.innerHTML = `<div class="empty">Nothing due today. Add leads or check back when retries come due.</div>`; return; }
+    if (!q.length) { box.innerHTML = `<div class="empty">Nothing due today. Retries and callbacks come back on their dates.</div>`; return; }
     box.innerHTML = q.map(({ id, l, h }) => {
-      const att = (l.attempts || 0) + 1, w = windows(l);
-      const op = l.opener;
+      const att = (l.attempts || 0) + 1, w = windows(l), op = l.opener, st = stageOf(l);
       return `<article class="card" data-id="${esc(id)}">
         <div class="card-top">
-          <div style="min-width:0"><h3>${esc(l.company)}</h3><div class="muted small">${esc([l.city, l.province].filter(Boolean).join(", "))}${l.outcome ? ` · last: ${esc(l.outcome)} ${esc(l.lastCall || "")}` : " · never called"}</div></div>
-          <div class="row"><span class="chip ${h.level}">${h.level} ${h.score}</span>${l.outcome === "CB" ? `<span class="chip vm">Callback due</span>` : ""}<span class="chip ${att === VM_ATTEMPT ? "vm" : "plain"}">Attempt ${att}/${MAX_ATTEMPTS}${att === VM_ATTEMPT ? " · leave VM" : ""}</span></div>
+          <button class="linkish" data-open="${esc(id)}" style="min-width:0"><h3>${esc(l.company)}</h3><div class="muted small">${esc([l.city, l.province].filter(Boolean).join(", "))}${l.outcome ? ` · last: ${esc(l.outcome)} ${esc(l.lastCall || "")}` : " · never called"}</div></button>
+          <div class="row"><span class="chip ${h.level}">${h.level} ${h.score}</span>${st === "talking" ? `<span class="chip acc">Follow-up</span>` : ""}${l.outcome === "CB" ? `<span class="chip acc">Callback due</span>` : ""}<span class="chip ${att === VM_ATTEMPT ? "acc" : "plain"}">Attempt ${att}/${MAX_ATTEMPTS}${att === VM_ATTEMPT ? " · leave VM" : ""}</span></div>
         </div>
         <div class="facts">
           <div class="fact"><div class="label">Phone</div><div class="v"><span class="phone">${esc(l.phone || "—")}</span>${l.phone ? `<button class="copy" data-copy="${esc(l.phone)}">Copy</button>` : ""}</div></div>
           <div class="fact"><div class="label">Ask for</div><div class="v">${esc(l.owner || "the owner")} <span class="muted small">${esc(l.ownerConf ? l.ownerConf + " confidence" : "")}</span></div></div>
           <div class="fact"><div class="label">When</div><div class="v small mono" style="${w.ok ? "" : "color:var(--bad)"}">${esc(w.text)}</div></div>
-          <div class="fact"><div class="label">Why it's ${h.level.toLowerCase()}</div><div class="v small">${esc(h.reasons.join("; ") || "No signals yet. Fill hiring, ads and hours on the Leads tab.")}</div></div>
+          <div class="fact"><div class="label">Why it's ${h.level.toLowerCase()}</div><div class="v small">${esc(h.reasons.join("; ") || "No signals yet. Open the lead and fill in hiring, ads and hours.")}</div></div>
         </div>
         ${l.hook ? `<div class="hook"><div class="label">Hook</div>${esc(l.hook)} ${l.hookUrl ? `<a href="${esc(l.hookUrl)}" target="_blank" rel="noopener" class="small">source</a>` : ""}</div>` : ""}
         ${op ? `<div class="opener"><div class="label">Opener</div><p>${esc(op.opener)}</p>${op.problem ? `<p><b>Ask:</b> ${esc(op.problem)}</p>` : ""}${op.bookIt ? `<p><b>Book it:</b> ${esc(op.bookIt)}</p>` : ""}${op.watchOut ? `<p class="small muted"><b>Watch out:</b> ${esc(op.watchOut)}</p>` : ""}</div>` : ""}
-        <div class="row">${sample ? `<button class="btn" data-opener="${esc(id)}" ${openerBusy.has(id) ? "disabled" : ""}>${openerBusy.has(id) ? "Writing…" : op ? "Rewrite opener" : "Write opener"}</button>` : ""}</div>
+        <div class="row">${sample ? `<button class="btn" data-opener="${esc(id)}" ${busy.has(id) ? "disabled" : ""}>${busy.has(id) ? "Writing…" : op ? "Rewrite opener" : "Write opener"}</button>` : ""}<button class="btn" data-open="${esc(id)}">Open lead</button></div>
         <div class="codes" role="group" aria-label="Log this call">${CODES.map(([c, t]) => `<button data-log="${c}" title="${t}" class="${c === "MTG" ? "win" : ""}">${c}</button>`).join("")}</div>
-        <div class="log-extra">
-          <input type="text" id="note-${esc(id)}" placeholder="Note (optional)">
-          <input type="text" id="obj-${esc(id)}" placeholder="Objection, word for word (optional)">
-          <div class="row"><label class="small muted" for="cb-${esc(id)}">Callback</label><input type="date" id="cb-${esc(id)}" style="flex:1"></div>
-        </div>
+        <details><summary>Add a note, objection or callback date before you tap the result</summary>
+          <div class="log-extra">
+            <input type="text" data-f="note" placeholder="Note">
+            <input type="text" data-f="obj" placeholder="Objection, word for word">
+            <div class="row"><span class="small muted">Callback</span><input type="date" data-f="cb" style="flex:1"></div>
+          </div>
+        </details>
       </article>`;
     }).join("");
   }
 
-  // ---------- render: leads ----------
-  function renderLeads() {
-    const qtxt = $("#search").value.trim().toLowerCase(), hf = $("#heatFilter").value;
-    const rows = [...leads.entries()].map(([id, l]) => ({ id, l, h: heat(l) }))
-      .filter(x => (!hf || x.h.level === hf) && (!qtxt || [x.l.company, x.l.city, x.l.owner].join(" ").toLowerCase().includes(qtxt)))
-      .sort((a, b) => b.h.score - a.h.score || String(a.l.company).localeCompare(b.l.company));
-    $("#leadRows").innerHTML = rows.map(({ id, l, h }) => `<tr data-edit="${esc(id)}">
-      <td><b>${esc(l.company)}</b>${l.dnc ? ` <span class="chip plain">Do not call</span>` : ""}</td><td>${esc(l.city)}${l.province ? ", " + esc(l.province) : ""}</td>
-      <td><span class="chip ${h.level}">${h.level} ${h.score}</span></td><td class="num">${l.attempts || 0}</td>
-      <td>${esc(l.outcome || "—")}</td><td class="num">${esc(l.nextCall || "—")}</td><td>${esc(l.owner || "—")}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">No leads match.</td></tr>`;
-    $("#leadCount").textContent = `${rows.length} of ${leads.size} leads`;
-    const sel = $("#dLead"), cur = sel.value;
-    sel.innerHTML = `<option value="">— Not a lead on the list —</option>` + [...leads.entries()].sort((a,b) => String(a[1].company).localeCompare(b[1].company)).map(([id, l]) => `<option value="${esc(id)}">${esc(l.company)}</option>`).join("");
-    sel.value = cur;
+  // ---------- render: pipeline ----------
+  function renderBoard() {
+    const by = Object.fromEntries(STAGES.map(([k]) => [k, []]));
+    for (const [id, l] of leads) by[stageOf(l)]?.push({ id, l, h: heat(l) });
+    $("#board").innerHTML = STAGES.map(([k, name]) => {
+      const items = by[k].sort((a, b) => b.h.score - a.h.score).slice(0, k === "new" ? 40 : 200);
+      return `<div class="col"><div class="col-head"><span>${name}</span><span class="mono small">${by[k].length}</span></div>
+        ${items.map(({ id, l, h }) => `<button class="mini" data-open="${esc(id)}"><b>${esc(l.company)}</b><span class="row small"><span class="chip ${h.level}">${h.level} ${h.score}</span><span class="muted">${esc(l.city || "")}</span></span>${l.nextCall ? `<span class="small muted mono">next ${esc(l.nextCall)}</span>` : ""}</button>`).join("")}
+        ${k === "new" && by[k].length > 40 ? `<p class="small muted">+${by[k].length - 40} more on the Leads tab</p>` : ""}
+        ${!by[k].length ? `<p class="small muted">Empty</p>` : ""}</div>`;
+    }).join("");
   }
 
-  const FIELDS = [
-    ["company","Company"],["city","City"],["province","Province (BC, AB, ON…)"],["phone","Main phone"],["owner","Owner name"],
-    ["ownerConf","Owner confidence (High/Medium/Low/None)"],["website","Website"],["rating","Google rating"],["reviews","Google review count"],
-    ["hiring","Hiring? (Y/N + source)"],["ads","Running ads? (Meta/Google/None + source)"],["googleAds","Google Ads / LSA (Y/N/Unknown + source)"],
-    ["closedEvenings","Closed weekday evenings (Y/N/Unknown)"],["afterHours","After-hours check (VM / NA / ANSWERED + date)"],
-    ["hook","Call hook (one true, sourced fact)"],["hookUrl","Hook source URL"],["nextCall","Next call date (YYYY-MM-DD)"],["notes","Notes"]
-  ];
-  function renderEditor() {
-    const box = $("#editorBox");
-    if (editingId === null) { box.innerHTML = ""; return; }
-    const isNew = editingId === "__new__", l = isNew ? {} : (leads.get(editingId) || {});
-    const h = heat(l);
-    const objs = Array.isArray(l.objections) ? l.objections : [];
-    box.innerHTML = `<div class="editor">
-      <div class="card-top"><h3 style="font:700 22px/1.1 var(--display)">${isNew ? "New lead" : esc(l.company)}</h3>${isNew ? "" : `<span class="chip ${h.level}">${h.level} ${h.score}</span>`}</div>
-      <div class="grid2">${FIELDS.map(([k, t]) => `<div class="field"><label for="f-${k}">${esc(t)}</label>${k === "notes" ? `<textarea id="f-${k}">${esc(l[k])}</textarea>` : `<input type="text" id="f-${k}" value="${esc(l[k])}">`}</div>`).join("")}</div>
-      <label class="row small"><input type="checkbox" id="f-dnc" ${l.dnc ? "checked" : ""}> Do not call</label>
-      ${objs.length ? `<div><div class="label">Objections heard</div><ul class="obj">${objs.map(o => `<li>${esc(o.date)}: “${esc(o.text)}”</li>`).join("")}</ul></div>` : ""}
-      <div class="row"><button class="btn primary" id="saveLead">${isNew ? "Add lead" : "Save changes"}</button><button class="btn" id="cancelLead">Close</button>${isNew ? "" : `<button class="btn" id="delLead" style="margin-left:auto;color:var(--bad)">Delete lead</button>`}<span class="small muted" id="leadMsg"></span></div>
-    </div>`;
-    box.scrollIntoView({ block: "nearest" });
+  // ---------- render: leads ----------
+  function renderFilters() {
+    const fs = $("#fStage"), fsv = fs.value; fs.innerHTML = `<option value="">All stages</option>` + STAGES.map(([k, n]) => `<option value="${k}">${n}</option>`).join(""); fs.value = fsv;
+    const srcs = [...new Set([...leads.values()].map(sourceOf))].sort();
+    const fo = $("#fSource"), fov = fo.value; fo.innerHTML = `<option value="">All sources</option>` + srcs.map(s => `<option>${esc(s)}</option>`).join(""); fo.value = fov;
   }
+  function renderLeads() {
+    const q = $("#search").value.trim().toLowerCase(), fh = $("#fHeat").value, fs = $("#fStage").value, fo = $("#fSource").value;
+    const rows = [...leads.entries()].map(([id, l]) => ({ id, l, h: heat(l), st: stageOf(l) }))
+      .filter(x => (!fh || x.h.level === fh) && (!fs || x.st === fs) && (!fo || sourceOf(x.l) === fo) && (!q || [x.l.company, x.l.city, x.l.owner].join(" ").toLowerCase().includes(q)))
+      .sort((a, b) => b.h.score - a.h.score || String(a.l.company).localeCompare(b.l.company));
+    const shown = rows.slice(0, 400);
+    $("#leadRows").innerHTML = shown.map(({ id, l, h, st }) => {
+      const last = leadTouches(id)[0];
+      return `<tr data-open="${esc(id)}"><td><b>${esc(l.company)}</b>${l.dnc ? ` <span class="chip bad">Do not contact</span>` : ""}</td><td>${esc(l.city)}${l.province ? ", " + esc(l.province) : ""}</td>
+      <td><span class="chip ${h.level}">${h.level} ${h.score}</span></td><td>${STAGE_NAME[st]}</td><td class="num">${l.attempts || 0}</td>
+      <td>${last ? esc(`${last.date} ${chName(last.channel)} ${last.code || ""}`) : "—"}</td><td class="num">${esc(l.nextCall || "—")}</td><td class="small muted">${esc(sourceOf(l))}</td></tr>`;
+    }).join("") || `<tr><td colspan="8" class="muted">No leads match.</td></tr>`;
+    $("#leadCount").textContent = `${rows.length} of ${leads.size} leads` + (rows.length > shown.length ? ` (showing the top ${shown.length}; search to narrow)` : "");
+  }
+  const chName = c => (TOUCH_CH.find(x => x[0] === c) || [c, c])[1];
 
   // ---------- render: numbers ----------
   function renderNumbers() {
-    const s = stats();
-    const rate = (a, b) => b ? Math.round((a / b) * 100) + "%" : "—";
-    const objs = calls.filter(c => c.objection).sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+    const s = stats(), rate = (a, b) => b ? Math.round((a / b) * 100) + "%" : "—";
+    const calls = touches.filter(t => t.channel === "call");
+    const objs = touches.filter(c => c.objection).sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
     const byCode = Object.fromEntries(CODES.map(([c]) => [c, calls.filter(x => x.code === c).length]));
+    const byCh = TOUCH_CH.map(([c, n]) => [n, touches.filter(t => t.channel === c).length]).filter(x => x[1]);
+    const byStage = STAGES.map(([k, n]) => [n, [...leads.values()].filter(l => stageOf(l) === k).length]);
     $("#numbers").innerHTML = `
       <div class="strip">${gauge("Validation: dials", s.all.dials, 300)}${gauge("Validation: conversations", s.all.convs, 20)}${gauge("Validation: meetings", s.all.mtgs, 3)}</div>
       <div class="strip">
         <div class="gauge"><div class="label">Dials that reach an owner</div><div class="num">${rate(s.all.convs, s.all.dials)}</div></div>
         <div class="gauge"><div class="label">Conversations that book</div><div class="num">${rate(s.all.mtgs, s.all.convs)}</div></div>
-        <div class="gauge"><div class="label">Today</div><div class="num">${s.today.dials}<small> dials</small></div></div>
+        <div class="gauge"><div class="label">Dials today</div><div class="num">${s.today.dials}</div></div>
       </div>
-      <h2>Outcomes</h2>
-      <div class="tablebox"><table><thead><tr>${CODES.map(([c, t]) => `<th title="${t}">${c}</th>`).join("")}</tr></thead><tbody><tr style="cursor:default">${CODES.map(([c]) => `<td class="num">${byCode[c]}</td>`).join("")}</tr></tbody></table></div>
+      <h2>Pipeline</h2>
+      <div class="tablebox"><table><thead><tr>${byStage.map(([n]) => `<th>${n}</th>`).join("")}</tr></thead><tbody><tr>${byStage.map(([, v]) => `<td class="num">${v}</td>`).join("")}</tr></tbody></table></div>
+      <h2>Call outcomes</h2>
+      <div class="tablebox"><table><thead><tr>${CODES.map(([c, t]) => `<th title="${t}">${c}</th>`).join("")}</tr></thead><tbody><tr>${CODES.map(([c]) => `<td class="num">${byCode[c]}</td>`).join("")}</tr></tbody></table></div>
+      <h2>Touches by channel</h2>
+      ${byCh.length ? `<div class="tablebox"><table><thead><tr>${byCh.map(([n]) => `<th>${n}</th>`).join("")}</tr></thead><tbody><tr>${byCh.map(([, v]) => `<td class="num">${v}</td>`).join("")}</tr></tbody></table></div>` : `<div class="empty">Nothing logged yet.</div>`}
       <h2>Objections, word for word</h2>
-      ${objs.length ? `<ul class="obj">${objs.slice(0, 50).map(o => `<li><b>${esc(o.company)}</b> <span class="muted small">${esc(o.date)}</span>: “${esc(o.objection)}”</li>`).join("")}</ul>` : `<div class="empty">No objections logged yet. Type them in the box on a call card when you log the call.</div>`}`;
+      ${objs.length ? `<ul class="obj">${objs.slice(0, 60).map(o => `<li><b>${esc(o.company)}</b> <span class="muted small">${esc(o.date)}</span>: “${esc(o.objection)}”</li>`).join("")}</ul>` : `<div class="empty">No objections logged yet. Add them when you log a call.</div>`}`;
   }
 
-  function renderAll() { renderStrip(); renderQueue(); renderLeads(); renderEditor(); renderNumbers(); }
+  // ---------- render: drawer ----------
+  const FIELDS = [
+    ["company","Company"],["city","City"],["province","Province (BC, AB, ON…)"],["phone","Main phone"],["owner","Owner name"],
+    ["ownerConf","Owner confidence (High/Medium/Low/None)"],["email","Email the business publishes"],["facebook","Facebook page link"],["website","Website"],
+    ["rating","Google rating"],["reviews","Google review count"],["hiring","Hiring? (Y/N + source)"],["ads","Running ads? (Meta/Google/None + source)"],
+    ["googleAds","Pays for Google Ads / LSA? (Y/N + source)"],["closedEvenings","Closed weekday evenings? (Y/N)"],["afterHours","After-hours check (VM / NA / ANSWERED + date)"],
+    ["hook","Hook (one true, sourced fact)"],["hookUrl","Hook source link"],["nextCall","Next touch date (YYYY-MM-DD)"],["notes","Notes"]
+  ];
+  function channelRule(ch, kind, l) {
+    const cold = kind === "first" || kind === "followup" || kind === "breakup";
+    const engaged = leadTouches(openId).some(t => CONVERSATION.has(t.code) || t.code === "REPLIED");
+    if (ch === "linkedin") return { level: "stop", text: "LinkedIn is locked: you need to be 16 to have an account. This draft is for later." };
+    if (ch === "email" && cold && !engaged) {
+      if (!(settings.coldEmailUnlocked && settings.mailingAddress)) return { level: "stop", text: "Cold email is locked. It needs a mailing address and the unlock switch on the Playbook tab (CASL). Your plan says after Gate 2. Use a call first; after they talk to you, email is fine." };
+      return { level: "ok", text: `Cold email unlocked. Only send to an address the business publishes${l.email ? ` (${l.email})` : " (none saved yet)"}. The draft includes your mailing address and an opt-out line.` };
+    }
+    if (ch === "sms" && cold && !engaged) return { level: "stop", text: "Texting someone cold isn't allowed under your rules. Text only people who gave you their number or asked you to text." };
+    if (ch === "facebook" && kind === "first" && !engaged) return { level: "warn", text: "Only DM owners who replied to you or asked a question in a group. Otherwise help in the group first." };
+    if (ch === "loom") return { level: "warn", text: "Send the video where you have permission: after a call, after they replied, or to someone who asked. Record it in Loom using the shot list." };
+    return { level: "ok", text: "Allowed. You read it and send it yourself." };
+  }
+  function renderDrawer() {
+    const dr = $("#drawer"), sh = $("#shade");
+    if (!openId) { dr.hidden = true; sh.hidden = true; studio.key = null; return; }
+    const key = openId + "|" + studio.channel + "|" + studio.kind, prevOut = $("#out")?.value, prevCtx = $("#ctx")?.value;
+    if (studio.key === key && !studio.writing && prevOut != null && prevOut !== "Thinking…") studio.text = prevOut;
+    if (studio.key && studio.key.split("|")[0] === openId && prevCtx != null) studio.ctx = prevCtx; else if (studio.key?.split("|")[0] !== openId) studio.ctx = "";
+    studio.key = key;
+    const isNew = openId === "__new__", l = isNew ? { province: "BC" } : leads.get(openId);
+    if (!l) { openId = null; return renderDrawer(); }
+    dr.hidden = false; sh.hidden = false;
+    const h = heat(l), st = stageOf(l), tl = isNew ? [] : leadTouches(openId);
+    const rule = channelRule(studio.channel, studio.kind, l);
+    const saved = l.drafts?.[studio.channel + ":" + studio.kind];
+    dr.innerHTML = `
+      <div class="card-top">
+        <div style="min-width:0"><h3 class="title">${isNew ? "New lead" : esc(l.company)}</h3><div class="small muted">${esc([l.city, l.province].filter(Boolean).join(", "))}${isNew ? "" : " · " + esc(sourceOf(l))}</div></div>
+        <div class="row">${isNew ? "" : `<span class="chip ${h.level}">${h.level} ${h.score}</span>`}<button class="btn" id="closeDrawer">Close</button></div>
+      </div>
+      ${isNew ? "" : `
+      <div class="panel">
+        <div class="facts">
+          <div class="fact"><div class="label">Phone</div><div class="v"><span class="phone">${esc(l.phone || "—")}</span>${l.phone ? `<button class="copy" data-copy="${esc(l.phone)}">Copy</button>` : ""}</div></div>
+          <div class="fact"><div class="label">Ask for</div><div class="v">${esc(l.owner || "the owner")}</div></div>
+          <div class="fact"><div class="label">Stage</div><select id="stageSel">${STAGES.map(([k, n]) => `<option value="${k}" ${k === st ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+          <div class="fact"><div class="label">Google</div><div class="v">${esc(l.rating || "?")} stars · ${esc(l.reviews || "?")} reviews</div></div>
+        </div>
+        ${l.hook ? `<div class="hook"><div class="label">Hook${l.angle ? " · " + esc(l.angle) : ""}</div>${esc(l.hook)}</div>` : ""}
+        <div class="small muted">${esc(h.reasons.join("; ") || "No buying signals filled in yet.")}</div>
+      </div>
+      <div class="panel">
+        <h3>Write a message</h3>
+        <div class="field"><span class="lbl">Channel</span><div class="row">${CHANNELS.map(([k, n]) => `<button class="btn ${studio.channel === k ? "on" : ""}" data-ch="${k}">${n}</button>`).join("")}</div></div>
+        ${studio.channel === "call" ? "" : `<div class="field"><label for="kindSel">What is it?</label><select id="kindSel">${KINDS.map(([k, n]) => `<option value="${k}" ${k === studio.kind ? "selected" : ""}>${n}</option>`).join("")}</select></div>`}
+        <div class="lock ${rule.level === "stop" ? "stop" : rule.level === "ok" ? "ok" : ""}">${esc(rule.text)}</div>
+        <div class="field"><label for="ctx">Anything to include? (what happened, what they said)</label><textarea id="ctx" style="min-height:60px" placeholder="e.g. Talked to the owner, he said they're booked till February but asked for info by email.">${esc(studio.ctx || "")}</textarea></div>
+        <div class="row"><button class="btn primary" id="writeIt" ${!sample ? "disabled" : ""}>${studio.writing ? "Writing…" : "Write it"}</button><button class="btn" id="stopIt" ${studio.writing ? "" : "hidden"}>Stop</button>${!sample ? `<span class="small muted">Claude isn't available on this page right now.</span>` : ""}</div>
+        <textarea id="out" class="studio-out" placeholder="Your draft shows up here. Edit it however you like.">${esc(studio.text || saved?.text || "")}</textarea>
+        <div class="row"><button class="btn" id="copyOut">Copy</button><button class="btn" id="saveDraft">Save draft</button><button class="btn primary" id="markSent" ${rule.level === "stop" ? "disabled" : ""}>I sent it</button><span class="small muted" id="outMsg">${saved ? `Saved draft from ${esc(saved.date)}` : ""}</span></div>
+      </div>
+      <div class="panel">
+        <h3>Log something that happened</h3>
+        <div class="grid2">
+          <div class="field"><label for="tCh">Channel</label><select id="tCh">${TOUCH_CH.map(([k, n]) => `<option value="${k}">${n}</option>`).join("")}</select></div>
+          <div class="field"><label for="tCode">Result</label><select id="tCode"><option value="SENT">Sent</option><option value="REPLIED">They replied</option><option value="NOTE">Just a note</option>${CODES.map(([c, n]) => `<option value="${c}">${c}: ${n}</option>`).join("")}</select></div>
+        </div>
+        <input type="text" id="tNote" placeholder="What happened">
+        <div class="row"><button class="btn" id="addTouch">Log it</button></div>
+      </div>
+      <div class="panel">
+        <h3>Timeline</h3>
+        ${tl.length ? `<div class="timeline">${tl.map(t => `<div class="tl"><div class="when">${esc(t.date)}</div><div class="what"><b>${esc(chName(t.channel))}${t.code ? " · " + esc(t.code) : ""}</b>${t.note ? "\n" + esc(t.note) : ""}${t.objection ? `\n“${esc(t.objection)}”` : ""}${t.text ? `\n<span class="muted small">${esc(t.text.slice(0, 600))}</span>` : ""}</div></div>`).join("")}</div>` : `<p class="small muted">Nothing yet. Calls, messages and notes you log show up here.</p>`}
+      </div>`}
+      <details class="panel" ${isNew ? "open" : ""}><summary>${isNew ? "Lead details" : "Edit details and signals"}</summary>
+        <div class="grid2" style="margin-top:12px">${FIELDS.map(([k, t]) => `<div class="field"><label for="f-${k}">${esc(t)}</label>${k === "notes" ? `<textarea id="f-${k}">${esc(l[k])}</textarea>` : `<input type="text" id="f-${k}" value="${esc(l[k])}">`}</div>`).join("")}</div>
+        <label class="row small" style="margin-top:10px"><input type="checkbox" id="f-dnc" ${l.dnc ? "checked" : ""}> Do not contact (they said no, stop, or wrong fit)</label>
+        <div class="row" style="margin-top:12px"><button class="btn primary" id="saveLead">${isNew ? "Add lead" : "Save details"}</button>${isNew ? "" : `<button class="btn" id="delLead" style="margin-left:auto;color:var(--bad)">Delete lead</button>`}<span class="small muted" id="leadMsg"></span></div>
+      </details>`;
+  }
+
+  function renderAll() {
+    renderStrip(); renderInbox(); renderQueue(); renderBoard(); renderFilters(); renderLeads(); renderNumbers();
+    if (openId && !studio.writing && !drawerTyping()) renderDrawer();
+  }
+  function drawerTyping() { const a = document.activeElement; return !!a && $("#drawer").contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); }
 
   // ---------- toast ----------
   let toastTimer;
   function toast(msg, undo) {
     const t = $("#toast");
     t.innerHTML = `<span>${esc(msg)}</span>${undo ? `<button id="undoBtn">Undo</button>` : ""}`;
-    t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, undo ? 8000 : 3000);
+    t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, undo ? 8000 : 3500);
   }
 
-  // ---------- actions ----------
-  async function logCall(id, code) {
+  // ---------- writes ----------
+  function advance(l, to) { const cur = stageOf(l); return to === "lost" || STAGE_RANK[to] > STAGE_RANK[cur] ? to : cur; }
+  async function logCall(id, code, card) {
     const l = leads.get(id); if (!l || !db) return;
     const today = todayStr(), att = (l.attempts || 0) + 1;
-    const note = $(`#note-${CSS.escape(id)}`)?.value.trim() || "", objection = $(`#obj-${CSS.escape(id)}`)?.value.trim() || "", cb = $(`#cb-${CSS.escape(id)}`)?.value || "";
-    const before = { attempts: l.attempts || 0, lastCall: l.lastCall || "", outcome: l.outcome || "", nextCall: l.nextCall || "", status: l.status || "", objections: l.objections || [], notes: l.notes || "" };
-    const patch = {
-      attempts: att, lastCall: today, outcome: code,
-      status: { MTG: "Meeting booked", NI: "Not interested", NF: "Not a fit", CB: "Callback" }[code] || (att >= MAX_ATTEMPTS ? "Max attempts reached" : "In progress"),
-      nextCall: code === "CB" ? (cb || addDays(today, 7)) : RETRY[code] ? addDays(today, RETRY[code]) : ""
-    };
+    const note = card?.querySelector('[data-f="note"]')?.value.trim() || "", objection = card?.querySelector('[data-f="obj"]')?.value.trim() || "", cb = card?.querySelector('[data-f="cb"]')?.value || "";
+    const before = { attempts: l.attempts || 0, lastCall: l.lastCall || "", outcome: l.outcome || "", nextCall: l.nextCall || "", stage: stageOf(l), objections: l.objections || [], notes: l.notes || "" };
+    const to = code === "MTG" ? "meeting" : ["NI","NF"].includes(code) ? "lost" : ["CONV","CB"].includes(code) ? "talking" : "contacted";
+    const patch = { attempts: att, lastCall: today, outcome: code, stage: advance(l, to),
+      nextCall: code === "CB" ? (cb || addDays(today, 7)) : RETRY[code] ? addDays(today, RETRY[code]) : "" };
     if (objection) patch.objections = [...(l.objections || []), { date: today, text: objection }];
     if (note) patch.notes = `${l.notes || ""} [${today} ${code}: ${note}]`.trim();
     try {
-      const ref = await db.collection("calls").add({ date: today, ts: new Date().toISOString(), leadId: id, company: l.company, code, attempt: att, note, objection });
+      const ref = await db.collection("touches").add({ date: today, ts: new Date().toISOString(), leadId: id, company: l.company, channel: "call", code, attempt: att, note, objection });
       await db.doc("leads/" + id).update(patch);
-      lastAction = { id, before, callRef: ref };
-      toast(`${code} logged for ${l.company}${patch.nextCall ? ` · next call ${patch.nextCall}` : ""}`, true);
-    } catch (e) { toast(`Couldn't save: ${e.code || e.message}`); }
+      lastAction = { id, before, ref };
+      toast(`${code} logged for ${l.company}${patch.nextCall ? ` · next ${patch.nextCall}` : ""}`, true);
+    } catch (e) { card?.classList.remove("done"); toast(`Couldn't save: ${e.code || e.message}`); }
   }
   async function undo() {
     if (!lastAction || !db) return;
     const a = lastAction; lastAction = null;
-    try { await a.callRef.delete(); await db.doc("leads/" + a.id).update(a.before); toast("Undone"); }
+    try { await a.ref.delete(); if (a.before) await db.doc("leads/" + a.id).update(a.before); toast("Undone"); }
     catch (e) { toast(`Couldn't undo: ${e.code || e.message}`); }
+  }
+  async function addTouch(id, channel, code, note, text) {
+    const l = leads.get(id); if (!l || !db) return;
+    const today = todayStr();
+    const before = { stage: stageOf(l), nextCall: l.nextCall || "", attempts: l.attempts || 0, lastCall: l.lastCall || "", outcome: l.outcome || "" };
+    const patch = {};
+    if (channel === "call" && CODES.some(c => c[0] === code)) {
+      Object.assign(patch, { attempts: (l.attempts || 0) + 1, lastCall: today, outcome: code, nextCall: code === "CB" ? addDays(today, 7) : RETRY[code] ? addDays(today, RETRY[code]) : "" });
+      patch.stage = advance(l, code === "MTG" ? "meeting" : ["NI","NF"].includes(code) ? "lost" : ["CONV","CB"].includes(code) ? "talking" : "contacted");
+    } else if (code === "SENT") { patch.stage = advance(l, "contacted"); if (!l.nextCall || l.nextCall < today) patch.nextCall = addDays(today, 3); }
+    else if (code === "REPLIED") { patch.stage = advance(l, "talking"); patch.nextCall = today; }
+    try {
+      const ref = await db.collection("touches").add({ date: today, ts: new Date().toISOString(), leadId: id, company: l.company, channel, code, note: note || "", ...(text ? { text: text.slice(0, 4000) } : {}) });
+      if (Object.keys(patch).length) await db.doc("leads/" + id).update(patch);
+      lastAction = { id, before: Object.keys(patch).length ? before : null, ref };
+      toast(`Logged ${chName(channel)} ${code === "NOTE" ? "note" : code.toLowerCase()} for ${l.company}`, true);
+    } catch (e) { toast(`Couldn't save: ${e.code || e.message}`); }
+  }
+
+  // ---------- Claude ----------
+  const brain = () => `PLAYBOOK:\n${(settings.playbook || "").slice(0, 14000)}\n\nYERIAN'S VOICE:\n${(settings.voice || "").slice(0, 8000)}`;
+  function leadFacts(l, id) {
+    const h = heat(l), tl = id ? leadTouches(id).slice(0, 8) : [];
+    return `Company: ${l.company}
+City: ${l.city || "?"}, ${l.province || "?"}
+Owner: ${l.owner || "unknown"} (confidence: ${l.ownerConf || "unknown"})
+Google: ${l.rating || "?"} stars, ${l.reviews || "?"} reviews
+Angle from research: ${l.angle || "none"}
+Hook (sourced fact): ${l.hook || "none"}
+Hiring: ${l.hiring || "unknown"} | Ads: ${l.ads || "unknown"} | Google Ads/LSA: ${l.googleAds || "unknown"}
+Closed weekday evenings: ${l.closedEvenings || "unknown"} | After-hours check: ${l.afterHours || "not done"}
+Buying signals: ${h.reasons.join("; ") || "none"}
+Stage: ${STAGE_NAME[stageOf(l)]} | Calls so far: ${l.attempts || 0} | Last call result: ${l.outcome || "none"}
+Notes: ${(l.notes || "").slice(-700)}
+Recent history: ${tl.map(t => `${t.date} ${t.channel} ${t.code || ""} ${t.note || ""}`).join(" | ") || "none"}`;
+  }
+  const RULES = `Hard rules: use only facts given here; if a fact is unknown, ask about it instead of claiming it. Never quote industry statistics to the owner. Never promise leads, jobs or revenue. Never invent results, clients or familiarity. No hype words, no fake urgency. Use the owner's first name only if confidence is High or Medium. It is currently ${season()}; today is ${todayStr()}.`;
+  function specFor(ch, kind) {
+    const k = (KINDS.find(x => x[0] === kind) || KINDS[0])[1];
+    const sig = `Yerian\nBoltline Growth\n[your phone]${settings.mailingAddress ? "\n" + settings.mailingAddress : ""}`;
+    return {
+      loom: `Write a plan for a 60–90 second personal Loom video for this shop (${k}). Give exactly these sections:\n1. SHOT LIST: what to show on screen, step by step with rough seconds (for example their Google profile showing their hours, their review count, a test of what a homeowner experiences after hours, a mock-up of the instant text-back a lead would get).\n2. SCRIPT: what Yerian says, spoken and casual, built on this shop's strongest signal, ending with one small ask.\n3. MESSAGE TO SEND WITH THE LINK: 2–3 short lines for the channel he has permission to use.\n4. SUBJECT / PREVIEW LINE: under 7 words, lowercase, specific to them.`,
+      email: `Write an email (${k}). Start with "Subject:" (under 7 words, plain, specific to them, no clickbait). Body under 110 words: a true observation about their shop, one question about what it costs them, one sentence on what Boltline does, one small ask with an easy no. End with:\n${sig}\nIf you'd rather I didn't follow up, just reply "stop".`,
+      facebook: `Write a Facebook direct message (${k}). Under 70 words. Sounds like a person, not a company. No links unless they asked. One question at the end.`,
+      sms: `Write a text message (${k}). Under 300 characters. Start with "Hi [first name], it's Yerian from Boltline Growth." End with "Reply STOP to opt out."`,
+      linkedin: `Write a LinkedIn connection note (${k}) under 280 characters, then a first message under 80 words.`,
+    }[ch];
   }
 
   async function writeOpener(id) {
     const l = leads.get(id); if (!l || !sample) return;
-    openerBusy.add(id); renderQueue();
-    const h = heat(l);
-    const prompt = `You write cold-call openers for Yerian, who runs Boltline Growth, a small agency that runs Facebook ads for furnace/heat pump/AC installs inside an HVAC shop's own ad account and texts back every lead and missed call within seconds.
-
-Yerian's voice and script:
-${(settings.voice || DEFAULT_VOICE).slice(0, 6000)}
-
-The shop he is about to call:
-Company: ${l.company}
-City: ${l.city || "?"}, ${l.province || "?"}
-Owner: ${l.owner || "unknown"} (confidence: ${l.ownerConf || "unknown"})
-Google: ${l.rating || "?"} stars, ${l.reviews || "?"} reviews
-Hiring: ${l.hiring || "unknown"}
-Ads: ${l.ads || "unknown"}; Google Ads/LSA: ${l.googleAds || "unknown"}
-Closed weekday evenings: ${l.closedEvenings || "unknown"}
-After-hours check: ${l.afterHours || "not done"}
-Hook (sourced fact): ${l.hook || "none"}
-Heat signals: ${h.reasons.join("; ") || "none"}
-Previous calls: ${l.attempts || 0}; last outcome: ${l.outcome || "none"}; notes: ${(l.notes || "").slice(-600)}
-Today's date: ${todayStr()} (season: ${[10,11,12,1,2,3].includes(new Date().getMonth()+1) ? "furnace and heat pump" : "AC and heat pump"}).
-
-Rules: use only the facts above; if a fact is "unknown", ask about it instead of claiming it. Never quote industry statistics, never promise leads, jobs or revenue. Spoken, short, plain. Use the owner's first name only if confidence is High or Medium.
-
-Reply with only a JSON object:
-{"opener": "2-3 spoken sentences ending with 'Got a sec?'", "problem": "one question built on this shop's strongest signal", "bookIt": "the book-it line with two slots on weekdays", "watchOut": "one short thing to be careful about on this call, or empty string"}`;
+    busy.add(id); renderQueue();
+    const prompt = `You write cold-call openers for Yerian at Boltline Growth.\n\n${brain()}\n\nTHE SHOP HE IS ABOUT TO CALL:\n${leadFacts(l, id)}\n\n${RULES}\n\nReply with only a JSON object:\n{"opener": "2-3 spoken sentences ending with 'Got a sec?'", "problem": "one question built on this shop's strongest signal or angle", "bookIt": "the book-it line with two weekday slots", "watchOut": "one short thing to be careful about on this call, or empty string"}`;
     try {
       const out = await sample.json(prompt, { cache: false });
       if (!out || typeof out.opener !== "string") throw { code: "invalid_json" };
       await db.doc("leads/" + id).update({ opener: { opener: out.opener, problem: String(out.problem || ""), bookIt: String(out.bookIt || ""), watchOut: String(out.watchOut || "") } });
-    } catch (e) {
-      if (e.code === "not_granted" || e.code === "sampling_disabled") { sample = null; toast("Claude isn't allowed for this page, so openers are off."); }
-      else if (e.code === "rate_limited") toast("Too many requests right now. Try again in a minute.");
-      else if (e.code !== "cancelled") toast("Couldn't write the opener. Try again.");
-    } finally { openerBusy.delete(id); renderQueue(); }
+    } catch (e) { sampleError(e); }
+    finally { busy.delete(id); renderQueue(); }
   }
-
-  let draftCtl = null;
-  async function writeDraft() {
-    if (!sample) { $("#dOut").textContent = "Claude isn't available on this page."; return; }
-    const id = $("#dLead").value, l = id ? leads.get(id) : null;
-    const type = $("#dType").value, channel = $("#dChannel").value, notes = $("#dNotes").value.trim();
-    const kinds = { confirm: "a short confirmation of a meeting booked on a phone call", info: "a follow-up with the information the owner asked for on a call", referral: "a friendly follow-up to a warm referral (someone who knows Yerian or was introduced)", fbreply: "a reply to someone who replied to Yerian or asked a question in a Facebook group (help first, no pitch unless they asked)" };
-    const prompt = `Write ${kinds[type]} from Yerian at Boltline Growth, as a ${channel}.
-
-Yerian's voice:
-${(settings.voice || DEFAULT_VOICE).slice(0, 6000)}
-
-${l ? `Recipient: ${l.owner || "the owner"} at ${l.company} (${l.city || ""} ${l.province || ""}). Known facts: hook: ${l.hook || "none"}; hiring: ${l.hiring || "unknown"}; ads: ${l.ads || "unknown"}; call notes: ${(l.notes || "").slice(-800)}` : "Recipient: not on the lead list."}
-What happened / what to include: ${notes || "(nothing extra)"}
-
-Rules: short, plain, spoken; who Yerian is, why he's writing, one useful thing, one easy next step with an easy no. No invented facts, results, familiarity or urgency. Never promise leads, jobs or revenue. ${channel === "Email" ? "End with Yerian's name, Boltline Growth, a line for his phone number as [phone], and: 'If you'd rather I didn't follow up, just reply stop.'" : channel === "Text" ? "Keep it under 320 characters and end with 'Reply STOP to opt out.'" : ""}
-Reply with only the message text${channel === "Email" ? ", starting with a 'Subject:' line" : ""}.`;
-    draftCtl = new AbortController();
-    $("#dGo").disabled = true; $("#dStop").hidden = false; $("#dOut").textContent = "Thinking…"; $("#dMsg").textContent = "";
+  async function bulkOpeners() {
+    if (!sample) return;
+    const n = Math.max(1, Math.min(15, parseInt($("#qn").value) || 15));
+    const q = buildQueue(n).filter(x => !x.l.opener);
+    if (!q.length) { toast("Every lead on today's list already has an opener."); return; }
+    const btn = $("#bulkOpeners"); btn.disabled = true; btn.textContent = `Writing ${q.length} openers…`;
+    q.forEach(x => busy.add(x.id)); renderQueue();
+    const prompt = `You write cold-call openers for Yerian at Boltline Growth.\n\n${brain()}\n\n${RULES}\n\nTHE SHOPS HE IS CALLING TODAY:\n${q.map((x, i) => `--- SHOP ${i + 1} (id: ${x.id}) ---\n${leadFacts(x.l, x.id)}`).join("\n")}\n\nReply with only a JSON array, one object per shop, in the same order:\n[{"id": "the id above", "opener": "2-3 spoken sentences ending with 'Got a sec?'", "problem": "one question built on that shop's strongest signal", "bookIt": "book-it line with two weekday slots", "watchOut": "one short caution or empty string"}]`;
     try {
-      await sample(prompt, { signal: draftCtl.signal, cache: false, onText: ({ text }) => { $("#dOut").textContent = text; } });
+      const arr = await sample.json(prompt, { cache: false, modelTier: "default" });
+      let done = 0;
+      for (const o of Array.isArray(arr) ? arr : []) {
+        if (!o || !leads.has(String(o.id)) || typeof o.opener !== "string") continue;
+        await db.doc("leads/" + String(o.id)).update({ opener: { opener: o.opener, problem: String(o.problem || ""), bookIt: String(o.bookIt || ""), watchOut: String(o.watchOut || "") } });
+        done++;
+      }
+      toast(`Wrote ${done} openers.`);
+    } catch (e) { sampleError(e); }
+    finally { q.forEach(x => busy.delete(x.id)); btn.disabled = false; btn.textContent = "Write openers for all"; renderQueue(); }
+  }
+  async function writeStudio() {
+    const l = leads.get(openId); if (!l || !sample) return;
+    const ctx = $("#ctx")?.value.trim() || "";
+    let task;
+    if (studio.channel === "call") task = `Write a call plan for this shop: OPENER (2-3 spoken sentences ending "Got a sec?"), PROBLEM QUESTION (built on the strongest signal), IF THEY SAY "WE'RE BUSY / ALREADY ANSWER EVERY CALL" (one honest reply), BOOK IT (two weekday slots), VOICEMAIL (under 20 seconds, for attempt 3).`;
+    else task = specFor(studio.channel, studio.kind);
+    const prompt = `You are Yerian's outreach writer at Boltline Growth. Write so a busy HVAC owner actually reads it and replies: specific to their shop, short, plain, honest, one ask. Apply the buyer psychology in the playbook.\n\n${brain()}\n\nTHE SHOP:\n${leadFacts(l, openId)}\n\nWHAT YERIAN SAYS TO INCLUDE: ${ctx || "(nothing extra)"}\n\n${RULES}\n\nTASK: ${task}\nReply with only the finished text, ready to copy.`;
+    studio.ctl = new AbortController(); studio.writing = true; studio.text = "";
+    renderDrawer(); $("#out").value = "Thinking…";
+    try {
+      await sample(prompt, { signal: studio.ctl.signal, cache: false, onText: ({ text }) => { studio.text = text; const o = $("#out"); if (o) o.value = text; } });
     } catch (e) {
-      if (e.code === "cancelled") $("#dOut").textContent = e.text || "Stopped.";
-      else if (e.code === "not_granted" || e.code === "sampling_disabled") { sample = null; $("#dOut").textContent = "Claude isn't allowed for this page, so drafting is off."; }
-      else if (e.code === "rate_limited") $("#dOut").textContent = "Too many requests right now. Try again in a minute.";
-      else $("#dOut").textContent = (e.text ? e.text + "\n\n" : "") + "The draft was interrupted. Press Write draft to try again.";
-    } finally { $("#dGo").disabled = false; $("#dStop").hidden = true; }
+      if (e.code === "cancelled") studio.text = e.text || "";
+      else { studio.text = e.text || ""; sampleError(e); }
+    } finally { studio.writing = false; renderDrawer(); }
+  }
+  function sampleError(e) {
+    if (e.code === "not_granted" || e.code === "sampling_disabled") { sample = null; toast("Claude isn't allowed on this page, so writing is off. Allow it from the page's permissions to turn it on."); renderAll(); }
+    else if (e.code === "rate_limited") toast("Too many requests right now. Try again in a minute.");
+    else if (e.code === "invalid_json") toast("Claude's answer came back garbled. Try again.");
+    else if (e.code !== "cancelled") toast("Writing was interrupted. Try again.");
   }
 
-  async function copyText(text, btn) {
-    try { await navigator.clipboard.writeText(text); if (btn) { const o = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = o, 1200); } }
-    catch { toast("Copy didn't work here. Select the text and copy it yourself."); }
-  }
-
-  // ---------- CSV import ----------
+  // ---------- imports ----------
   function parseCSV(text) {
     const rows = []; let row = [], cell = "", q = false;
     for (let i = 0; i < text.length; i++) {
@@ -563,104 +700,189 @@ Reply with only the message text${channel === "Email" ? ", starting with a 'Subj
     return rows.filter(r => r.some(x => x.trim()));
   }
   const MAP = [
-    ["company", /^(company|business|name)/i], ["city", /^city/i], ["province", /^(province|prov|state)/i], ["phone", /phone/i],
-    ["owner", /^owner name|^owner$/i], ["ownerConf", /owner confidence/i], ["website", /website|url$/i], ["rating", /rating/i],
-    ["reviews", /review count|reviews/i], ["hiring", /^hiring/i], ["ads", /running ads|^ads/i], ["googleAds", /google ads|lsa/i],
-    ["closedEvenings", /closed.*evening|evening/i], ["afterHours", /after.?hours/i], ["hook", /hook$|call hook/i], ["hookUrl", /hook source/i],
-    ["notes", /^notes/i], ["fit", /fit score|^score/i], ["tier", /^tier/i], ["attempts", /call attempts|attempts/i], ["lastCall", /last call/i],
-    ["outcome", /^outcome/i], ["dnc", /do not call/i]
+    ["company", /^(company|business|name)/i], ["city", /^city/i], ["province", /^(province|prov|state)$/i], ["phone", /phone/i],
+    ["owner", /^owner( name)?$/i], ["ownerConf", /owner confidence/i], ["email", /e-?mail/i], ["website", /^website|^url$/i], ["rating", /rating/i],
+    ["reviews", /review/i], ["hiring", /^hiring/i], ["ads", /running ads|^ads/i], ["googleAds", /google ads|lsa/i],
+    ["hours", /hours/i], ["afterHours", /after.?hours/i], ["angle", /^angle/i], ["hook", /hook$|call hook/i], ["hookUrl", /hook source/i],
+    ["notes", /^notes/i], ["tier", /^tier/i], ["dnc", /do not/i]
   ];
-  async function doImport() {
-    const msg = $("#importMsg");
-    let text = $("#csvPaste").value;
-    const f = $("#csvFile").files[0]; if (f) text = await f.text();
+  function rowsFromCSV(text, source) {
     const rows = parseCSV(text.replace(/^﻿/, ""));
-    if (rows.length < 2) { msg.textContent = "No rows found. Check the file has a header row."; return; }
-    const head = rows[0], idx = {};
-    head.forEach((h, i) => { const hit = MAP.find(([k, re]) => !(k in idx) && re.test(h.trim()) && !(k === "phone" && /direct/i.test(h)) && !(k === "website" && /source/i.test(h))); if (hit) idx[hit[0]] = i; });
-    if (!("company" in idx)) { msg.textContent = "Couldn't find a Company column."; return; }
-    const seen = new Set([...leads.values()].map(l => (l.company + "|" + (l.phone || "")).toLowerCase()));
-    const defProv = $("#csvProv").value.trim().toUpperCase();
-    let added = 0, skipped = 0;
-    msg.textContent = "Importing…";
-    for (const r of rows.slice(1)) {
+    if (rows.length < 2) throw new Error("No rows found. Check the sheet has a header row.");
+    const idx = {};
+    rows[0].forEach((h, i) => { const hit = MAP.find(([k, re]) => !(k in idx) && re.test(h.trim()) && !(k === "phone" && /direct/i.test(h)) && !(k === "website" && /source/i.test(h)) && !(k === "hours" && /after/i.test(h))); if (hit) idx[hit[0]] = i; });
+    if (!("company" in idx)) throw new Error("Couldn't find a Company column.");
+    const prov = $("#csvProv").value.trim().toUpperCase() || "BC";
+    return rows.slice(1).map(r => {
       const l = {}; for (const [k, i] of Object.entries(idx)) l[k] = (r[i] ?? "").trim();
-      if (!l.company) continue;
-      const key = (l.company + "|" + (l.phone || "")).toLowerCase();
-      if (seen.has(key)) { skipped++; continue; }
-      seen.add(key);
-      l.province = (l.province || defProv).toUpperCase();
-      l.attempts = num(l.attempts) || 0; l.fit = num(l.fit) || 0; l.dnc = yes(l.dnc);
-      if (!/^(NA|VM|GK|NI|CB|NF|MTG|CONV)$/i.test(l.outcome || "")) l.outcome = "";
-      l.createdAt = new Date().toISOString();
-      try { await db.collection("leads").add(l); added++; msg.textContent = `Importing… ${added}`; }
-      catch (e) { msg.textContent = `Stopped after ${added}: ${e.code === "quota_exceeded" ? "the lead store is full" : e.code || e.message}`; return; }
+      if (!l.company) return null;
+      if (l.hours) { if (/closed/i.test(l.hours)) l.closedEvenings = "Y (" + l.hours + ")"; else if (/24/.test(l.hours)) l.closedEvenings = "N (" + l.hours + ")"; delete l.hours; }
+      if (/paying for calls/i.test(l.angle || "")) l.googleAds = l.googleAds || "Y (paying for calls)";
+      if (/facebook/i.test(l.angle || "")) l.ads = l.ads || "Meta (already on Facebook)";
+      if (l.angle && !l.hook) l.hook = l.angle;
+      l.province = (l.province || prov).toUpperCase(); l.source = source; l.attempts = 0; l.stage = "new"; l.dnc = yes(l.dnc) || /^skip/i.test(l.notes || "");
+      if (l.dnc) l.stage = "lost";
+      return l;
+    }).filter(Boolean);
+  }
+  async function ingest(rows, msgEl) {
+    if (importing) return { added: 0, skipped: 0 };
+    importing = true; renderInbox();
+    const seen = new Set([...leads.values()].map(leadKey));
+    let added = 0, skipped = 0;
+    try {
+      for (const r of rows) {
+        const key = leadKey(r);
+        if (seen.has(key)) { skipped++; continue; }
+        seen.add(key);
+        const id = slug(r.company) + "-" + (digits(r.phone).slice(-4) || Math.random().toString(36).slice(2, 6));
+        await db.doc("leads/" + id).set({ ...r, createdAt: new Date().toISOString() });
+        added++; if (msgEl) msgEl.textContent = `Adding… ${added}`;
+      }
+    } finally { importing = false; }
+    return { added, skipped };
+  }
+  async function ingestImport(impId) {
+    const imp = imports.find(i => i.id === impId); if (!imp) return;
+    const msg = $(`[data-impmsg="${CSS.escape(impId)}"]`);
+    try {
+      const r = await ingest(imp.data.rows, msg);
+      await db.doc("imports/" + impId).update({ status: "done", added: r.added, skipped: r.skipped, doneAt: new Date().toISOString() });
+      toast(`Added ${r.added} leads${r.skipped ? `, skipped ${r.skipped} already in your list` : ""}.`);
+    } catch (e) { if (msg) msg.textContent = `Stopped: ${e.code === "quota_exceeded" ? "the lead store is full" : (e.code || e.message)}. Press Add them again to continue.`; renderInbox(); }
+  }
+  async function importSheet() {
+    const msg = $("#importMsg"), url = $("#sheetUrl").value.trim();
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || url.match(/^([a-zA-Z0-9_-]{25,})$/);
+    if (!m) { msg.textContent = "That doesn't look like a Google Sheets link. It should contain /spreadsheets/d/…"; return; }
+    if (!mcp) { msg.textContent = "Google Drive isn't connected to this page. Use Option 2 (download as .csv) instead."; return; }
+    msg.textContent = "Reading the sheet from your Google Drive…";
+    try {
+      const res = await mcp.callTool("Google Drive", "download_file_content", { fileId: m[1], exportMimeType: "text/csv" });
+      const p = res.payload || {};
+      const b64 = typeof p === "object" ? p.content : null;
+      if (!b64) throw { code: "tool_error", message: "The sheet came back empty." };
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const text = new TextDecoder("utf-8").decode(bytes);
+      const rows = rowsFromCSV(text, (p.title || "Google Sheet") + " (" + todayStr() + ")");
+      const r = await ingest(rows, msg);
+      msg.textContent = `Added ${r.added} leads${r.skipped ? `, skipped ${r.skipped} already in your list` : ""}.`;
+    } catch (e) {
+      const c = e.code;
+      msg.textContent = c === "server_not_connected" ? "Google Drive isn't connected to your Claude account. Add it in claude.ai Settings → Connectors, or use Option 2."
+        : c === "needs_reauth" ? "Reconnect Google Drive in claude.ai Settings → Connectors, then try again."
+        : c === "not_in_manifest" ? "You didn't allow Google Drive for this page. Use Option 2, or allow it from the page's permissions."
+        : c === "tool_error" ? `Google Drive said: ${e.message}. Check the link and that the sheet is yours.`
+        : `Couldn't read the sheet (${c || e.message}). Try Option 2.`;
     }
-    msg.textContent = `Added ${added} leads${skipped ? `, skipped ${skipped} already on the list` : ""}.`;
-    $("#csvPaste").value = ""; $("#csvFile").value = "";
+  }
+  async function importFile() {
+    const msg = $("#importMsg"), f = $("#csvFile").files[0];
+    if (!f) { msg.textContent = "Pick a .csv file first."; return; }
+    try { const rows = rowsFromCSV(await f.text(), f.name.replace(/\.csv$/i, "") + " (" + todayStr() + ")"); const r = await ingest(rows, msg); msg.textContent = `Added ${r.added} leads${r.skipped ? `, skipped ${r.skipped} already in your list` : ""}.`; $("#csvFile").value = ""; }
+    catch (e) { msg.textContent = e.message || `Couldn't import (${e.code}).`; }
+  }
+
+  async function copyText(text, btn) {
+    try { await navigator.clipboard.writeText(text); if (btn) { const o = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = o, 1200); } }
+    catch { toast("Copy didn't work here. Select the text and copy it yourself."); }
+  }
+
+  // ---------- agent prompts ----------
+  function renderAgentPrompts() {
+    $("#pFind").textContent = `Use the find-leads skill. Find 50 new independent residential HVAC shops in [CITIES, e.g. Surrey, Langley, Abbotsford, BC] that fit my ICP in the Boltline Outbound app's playbook. Skip any shop already in the app. For every shop, record the facts with a source link: phone, owner name and confidence, Google rating and review count, closed weekday evenings, hiring, Meta ads, Google Ads, a one-line hook, and the email address only if the business publishes it. When done, write them into my app as ONE document in the "imports" collection (status "pending", source "<region> agent run <date>", rows = the leads) using ArtifactData on ${APP_URL}. Then tell me how many you found and the top 10.`;
+    $("#pSignals").textContent = `Use the refresh-signals skill on my Boltline Outbound app (${APP_URL}). Read the leads collection with ArtifactData, pick the 30 hottest leads I haven't called yet plus anyone with a callback this week, and re-check hiring (Indeed), Facebook ads (Meta Ad Library), Google hours and reviews. Update only the fields that changed (hiring, ads, googleAds, closedEvenings, reviews, rating) with a source and date, pinned to each document's version. Then tell me which leads moved up and why.`;
   }
 
   // ---------- events ----------
   document.addEventListener("click", async e => {
-    const t = e.target.closest("button, tr[data-edit]"); if (!t) return;
+    const t = e.target.closest("button, tr[data-open]"); if (!t) { if (e.target.id === "shade") { openId = null; renderDrawer(); } return; }
     if (t.dataset.tab) {
-      document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b === t));
-      document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
+      $$("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b === t));
+      $$("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
       try { localStorage.setItem("tab", t.dataset.tab); } catch {}
       return;
     }
     if (t.id === "undoBtn") return undo();
     if (t.dataset.copy) return copyText(t.dataset.copy, t);
+    if (t.dataset.copyel) return copyText($("#" + t.dataset.copyel).textContent, t);
     if (t.dataset.opener) return writeOpener(t.dataset.opener);
-    if (t.dataset.log) { const card = t.closest(".card"); card.classList.add("done"); return logCall(card.dataset.id, t.dataset.log); }
-    if (t.dataset.edit) { editingId = t.dataset.edit; return renderEditor(); }
-    if (t.id === "addLead") { editingId = "__new__"; return renderEditor(); }
-    if (t.id === "cancelLead") { editingId = null; return renderEditor(); }
+    if (t.id === "bulkOpeners") return bulkOpeners();
+    if (t.dataset.log) { const card = t.closest(".card"); card.classList.add("done"); return logCall(card.dataset.id, t.dataset.log, card); }
+    if (t.dataset.open) { openId = t.dataset.open; studio = { channel: "call", kind: "first", text: "", ctx: "", ctl: null, writing: false, key: null }; return renderDrawer(); }
+    if (t.dataset.ingest) return ingestImport(t.dataset.ingest);
+    if (t.dataset.dismiss) { try { await db.doc("imports/" + t.dataset.dismiss).update({ status: "dismissed" }); } catch (err) { toast(`Couldn't dismiss: ${err.code || err.message}`); } return; }
+    if (t.id === "closeDrawer") { studio.ctl?.abort(); openId = null; return renderDrawer(); }
+    if (t.id === "addLead") { openId = "__new__"; return renderDrawer(); }
     if (t.id === "importBtn") { $("#importBox").hidden = !$("#importBox").hidden; return; }
-    if (t.id === "doImport") return doImport();
+    if (t.id === "doSheet") return importSheet();
+    if (t.id === "doFile") return importFile();
+    if (t.dataset.ch) { studio.channel = t.dataset.ch; studio.text = ""; if (studio.channel === "call") studio.kind = "first"; return renderDrawer(); }
+    if (t.id === "writeIt") return writeStudio();
+    if (t.id === "stopIt") return studio.ctl?.abort();
+    if (t.id === "copyOut") return copyText($("#out").value, t);
+    if (t.id === "saveDraft") {
+      const text = $("#out").value.trim(); if (!text) return;
+      try { await db.doc("leads/" + openId).update({ drafts: { [studio.channel + ":" + studio.kind]: { text, date: todayStr() } } }); $("#outMsg").textContent = "Draft saved."; } catch (err) { $("#outMsg").textContent = `Couldn't save: ${err.code || err.message}`; }
+      return;
+    }
+    if (t.id === "markSent") { const text = $("#out").value.trim(); studio.text = ""; return addTouch(openId, studio.channel === "call" ? "note" : studio.channel, studio.channel === "call" ? "NOTE" : "SENT", (KINDS.find(k => k[0] === studio.kind) || [,""])[1], text); }
+    if (t.id === "addTouch") { const ch = $("#tCh").value, code = $("#tCode").value; return addTouch(openId, ch, code, $("#tNote").value.trim()); }
     if (t.id === "saveLead") {
       const data = {}; FIELDS.forEach(([k]) => data[k] = $(`#f-${k}`).value.trim()); data.province = data.province.toUpperCase(); data.dnc = $("#f-dnc").checked;
       if (!data.company) { $("#leadMsg").textContent = "Company is required."; return; }
       try {
-        if (editingId === "__new__") { data.attempts = 0; data.createdAt = new Date().toISOString(); await db.collection("leads").add(data); toast(`Added ${data.company}`); }
-        else { await db.doc("leads/" + editingId).update(data); toast(`Saved ${data.company}`); }
-        editingId = null; renderEditor();
+        if (openId === "__new__") { const id = slug(data.company) + "-" + (digits(data.phone).slice(-4) || Math.random().toString(36).slice(2, 6)); await db.doc("leads/" + id).set({ ...data, attempts: 0, stage: data.dnc ? "lost" : "new", source: "Added by hand", createdAt: new Date().toISOString() }); openId = id; toast(`Added ${data.company}`); }
+        else { if (data.dnc) data.stage = "lost"; await db.doc("leads/" + openId).update(data); toast(`Saved ${data.company}`); }
       } catch (err) { $("#leadMsg").textContent = `Couldn't save: ${err.code || err.message}`; }
       return;
     }
     if (t.id === "delLead") {
       if (t.dataset.confirm !== "1") { t.dataset.confirm = "1"; t.textContent = "Click again to delete"; return; }
-      try { await db.doc("leads/" + editingId).delete(); toast("Lead deleted"); editingId = null; renderEditor(); } catch (err) { $("#leadMsg").textContent = `Couldn't delete: ${err.code || err.message}`; }
+      try { await db.doc("leads/" + openId).delete(); toast("Lead deleted"); openId = null; renderDrawer(); } catch (err) { $("#leadMsg").textContent = `Couldn't delete: ${err.code || err.message}`; }
       return;
     }
-    if (t.id === "dGo") return writeDraft();
-    if (t.id === "dStop") return draftCtl?.abort();
-    if (t.id === "dCopy") return copyText($("#dOut").textContent, t);
-    if (t.id === "saveVoice") {
-      try { const v = $("#voiceText").value; settingsExists ? await db.doc("settings/main").update({ voice: v }) : await db.doc("settings/main").set({ voice: v }); $("#voiceMsg").textContent = "Saved."; }
-      catch (err) { $("#voiceMsg").textContent = `Couldn't save: ${err.code || err.message}`; }
+    if (t.id === "savePb") {
+      const mail = $("#mailAddr").value.trim();
+      const patch = { playbook: $("#pbText").value, voice: $("#voiceText").value, mailingAddress: mail, coldEmailUnlocked: !!mail && $("#coldOn").checked };
+      try { await db.doc("settings/main").set({ ...settings, ...patch }); $("#pbMsg").textContent = "Saved."; if (!mail && $("#coldOn").checked) $("#pbMsg").textContent = "Saved. Cold email stays locked until you add a mailing address."; }
+      catch (err) { $("#pbMsg").textContent = `Couldn't save: ${err.code || err.message}`; }
     }
   });
+  document.addEventListener("change", async e => {
+    if (e.target.id === "stageSel" && openId && leads.has(openId)) {
+      const st = e.target.value;
+      try { await db.doc("leads/" + openId).update({ stage: st, ...(st === "lost" ? {} : { dnc: false }) }); toast(`Moved to ${STAGE_NAME[st]}`); } catch (err) { toast(`Couldn't move: ${err.code || err.message}`); }
+    }
+    if (e.target.id === "kindSel") { studio.kind = e.target.value; studio.text = ""; renderDrawer(); }
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && openId) { studio.ctl?.abort(); openId = null; renderDrawer(); } });
   $("#search").addEventListener("input", renderLeads);
-  $("#heatFilter").addEventListener("change", renderLeads);
+  ["#fHeat","#fStage","#fSource"].forEach(s => $(s).addEventListener("change", renderLeads));
   $("#qn").addEventListener("change", renderQueue);
-  try { const tab = localStorage.getItem("tab"); if (tab) document.querySelector(`nav.tabs button[data-tab="${tab}"]`)?.click(); } catch {}
-  $("#voiceText").value = DEFAULT_VOICE;
+  try { const tab = localStorage.getItem("tab"); if (tab) $(`nav.tabs button[data-tab="${tab}"]`)?.click(); } catch {}
+  renderAgentPrompts();
 
   // ---------- boot ----------
   renderStrip();
   (async () => {
-    if (!window.claude?.use) { $("#conn").textContent = "Open this in Claude to use it"; $("#queue").innerHTML = `<div class="empty">This app keeps your leads in Claude. Open it from claude.ai.</div>`; return; }
-    db = await claude.use("db");
-    sample = await claude.use("sample");
+    if (!window.claude?.use) { $("#conn").textContent = "Open this in Claude to use it"; $("#queue").innerHTML = `<div class="empty">This app keeps your leads in your Claude account. Open it from claude.ai.</div>`; return; }
+    [db, sample, mcp] = await Promise.all([claude.use("db"), claude.use("sample"), claude.use("mcp")]);
     if (!db) { $("#conn").textContent = "Offline"; $("#queue").innerHTML = `<div class="empty">Sign in to claude.ai to load your leads.</div>`; return; }
     $("#conn").textContent = "Saved to your Claude account";
     const fail = err => { $("#conn").textContent = "Read-only"; if (err.code !== "revoked") toast(`Lost connection to your data (${err.code}). Reload the page.`); };
-    db.collection("leads").limit(1000).onSnapshot(s => { leads = new Map(s.docs.map(d => [d.id, d.data()])); loaded.leads = true; renderAll(); }, fail);
-    db.collection("calls").limit(1000).onSnapshot(s => { calls = s.docs.map(d => d.data()); loaded.calls = true; renderStrip(); renderQueue(); renderNumbers(); }, fail);
+    db.collection("leads").limit(1000).onSnapshot(s => { leads = new Map(s.docs.map(d => [d.id, d.data()])); loaded = true; renderAll(); }, fail);
+    db.collection("touches").orderBy("ts", "desc").limit(1000).onSnapshot(s => { touches = s.docs.map(d => d.data()); renderAll(); }, fail);
+    db.collection("imports").limit(50).onSnapshot(s => { imports = s.docs.map(d => ({ id: d.id, data: d.data() })); renderInbox(); }, fail);
     db.doc("settings/main").onSnapshot(s => {
-      settingsExists = s.exists;
-      if (s.exists && typeof s.data().voice === "string") { settings = s.data(); if (document.activeElement !== $("#voiceText")) $("#voiceText").value = settings.voice; }
+      if (!s.exists) return;
+      settings = { ...settings, ...s.data() };
+      const act = document.activeElement;
+      if (act !== $("#pbText")) $("#pbText").value = settings.playbook || "";
+      if (act !== $("#voiceText")) $("#voiceText").value = settings.voice || "";
+      if (act !== $("#mailAddr")) $("#mailAddr").value = settings.mailingAddress || "";
+      $("#coldOn").checked = !!settings.coldEmailUnlocked;
+      if (openId && !studio.writing && !drawerTyping()) renderDrawer();
     }, fail);
   })();
 })();

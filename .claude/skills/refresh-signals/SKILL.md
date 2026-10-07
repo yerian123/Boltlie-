@@ -8,17 +8,13 @@ description: Signal agent. Re-checks buying signals (Google/LSA ads, Meta ads, h
 This is TryGTM's "watches buying signals and scores intent", run on our own list.
 
 ## Steps
-1. Run `python3 outbound/engine.py score` to see the current split.
-2. Pick what to check, in this order: leads not yet called, then leads with a callback or retry due this week. Skip `Do not call`, `MTG`, `NI` and `NF`. Default batch is 25.
-3. For each lead, check and update with `python3 outbound/engine.py set "<Company>" "<Column>" "<value>"`:
-   - **Hiring?:** search Indeed for a tech, installer, CSR or dispatcher posting from the last 60 days. Value: `Y - '<title>' posted <date> (Indeed <url>)` or `None found (<date>)`.
-   - **Running ads? (Meta…):** search the Meta Ad Library tool for the company/page name. Value: `Meta - <n> active ads as of <date>: '<headline>'` or `None found (<date>)`.
-   - **Google Ads / LSA:** Ads Transparency Center if reachable, otherwise `Unknown`.
-   - **Closed weekday evenings:** from their Google hours, if visible.
-   - **Review count / rating:** only if a fresh source shows them. Say where it came from.
-4. Run `python3 outbound/engine.py score` again. Report which leads **moved up**, with the new signal and its source, and which went quiet.
+1. Read leads from the Boltline Outbound app: `ArtifactData` action `list` on https://claude.ai/artifact/K4KwGv5bJSwBrWUoFcoJfW, collection `leads` (page through with `query.cursor`). Note each document's `version`.
+2. Pick what to check: leads in stage `new` or `contacted` with the highest heat (signals: googleAds +3, hiring +2, closedEvenings +2, afterHours VM/NA +2, 50–600 reviews at 4.0+ +2), plus anyone whose `nextCall` is this week. Skip `dnc: true`. Default batch 30.
+3. For each lead, check: Indeed (hiring a tech, installer, CSR or dispatcher in the last 60 days), Meta Ad Library (active ads), Google hours (closed weekday evenings), Google rating and review count, Google Ads Transparency if reachable.
+4. Write back only changed fields with `ArtifactData` action `batch` (op `update`, `if_version` = the version you read). Values carry a date and source, e.g. `hiring: "Y - 'HVAC Installer' posted Oct 3 (Indeed <url>)"`, `ads: "Meta - 2 active ads as of Oct 7: '<headline>'"`.
+5. Report which leads moved up and why, which went quiet, and new companies spotted (those go to `/find-leads`, not straight into the app).
 
 ## Rules
 - Every value carries a date and a source. "Not found" stays "not found", not "no".
-- New *companies* spotted while checking go into a "next run" list for `/find-leads`. Don't add them to the CSV without the full ICP screen.
+- New *companies* spotted while checking go into a "next run" list for `/find-leads`. Don't add them to the app without the full ICP screen.
 - If a tool rate-limits you, stop and list what wasn't checked. Don't retry in a loop.
