@@ -1,0 +1,39 @@
+{
+  "lead_files": ["13 — Outbound/HVAC_Leads_ON-GTA_2026-09-29.csv"],
+  "your_timezone": "America/Vancouver",
+  "your_call_windows": [["09:00", "10:00"], ["16:00", "17:30"]],
+  "crtc_hours": {"weekday": ["09:00", "21:30"], "weekend": ["10:00", "18:00"]},
+  "province_timezones": {
+    "BC": "America/Vancouver", "AB": "America/Edmonton", "SK": "America/Regina",
+    "MB": "America/Winnipeg", "ON": "America/Toronto", "NB": "America/Moncton",
+    "NS": "America/Halifax", "PE": "America/Halifax", "NL": "America/St_Johns"
+  },
+  "daily_dials": 15,
+  "max_attempts": 5,
+  "voicemail_on_attempt": 3,
+  "retry_days": {"NA": 3, "VM": 3, "GK": 2, "CONV": 7},
+  "heat": {
+    "google_ads": 3,
+    "hiring": 2,
+    "closed_evenings": 2,
+    "after_hours_unanswered": 2,
+    "reviews_sweet_spot": 2,
+    "reviews_ok": 1,
+    "reviews_too_few": -2,
+    "reviews_too_many": -3,
+    "owner_high_confidence": 1,
+    "hot": 5,
+    "warm": 3
+  },
+  "gates": {
+    "validation": {"dials": 300, "conversations": 20, "meetings": 3},
+    "kill_switch_dials": 300
+  },
+  "channels": {
+    "cold_calls": true,
+    "facebook_group_dms_to_people_who_replied": true,
+    "warm_referrals": true,
+    "cold_email": false,
+    "linkedin": false
+  }
+}
