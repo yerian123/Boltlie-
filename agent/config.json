@@ -1,0 +1,19 @@
+{
+  "timezone": "America/Vancouver",
+  "notify_channel": "email",
+  "notify_email": "yerianmainrai@gmail.com",
+  "notify_whatsapp": null,
+  "subreddits": [
+    "ProHVACR",
+    "sweatystartup",
+    "smallbusiness",
+    "SmallBusinessCanada",
+    "Contractor"
+  ],
+  "max_drafts_per_day": 3,
+  "max_drafts_per_sub_per_day": 1,
+  "min_hours_between_posts": 4,
+  "thread_max_age_days": 7,
+  "require_explicit_approval": true,
+  "approval_expiry_hours": 24
+}
