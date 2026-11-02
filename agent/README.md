@@ -33,24 +33,29 @@ account.
 
 ### 2. Notifications
 
-**Email works now.** The Gmail MCP is connected. `notify_channel: "email"` in
-`config.json` and nothing else to do.
+**WhatsApp: connect the Bird connector.** It covers email, SMS, WhatsApp, voice and an
+agent inbox. The inbox is the reason to pick it: the approval loop needs the operator's
+reply to reach the agent, not just the report to reach the operator. It is not installed
+yet — connect it in claude.ai connector settings, then set `notify_channel: "whatsapp"`
+and `notify_whatsapp` to the destination number in `config.json`.
 
-**WhatsApp needs wiring.** There is no WhatsApp MCP in this environment. Two routes:
+Alternatives, for the record:
 
-- **WhatsApp Business Cloud API** (Meta). Create an app, get a phone number ID and a
-  permanent access token, then have the agent POST to the messages endpoint. Note that
-  Meta only allows free-form messages inside a 24-hour window after the user messages
-  you; outside it you need an approved template. For a daily report you will want a
-  template.
-- **Twilio's WhatsApp sender.** Simpler to start, and their sandbox works immediately for
-  a number you have opted in. Account SID, auth token, and the `whatsapp:` prefixed
-  from/to numbers.
+- **Sent** — SMS, WhatsApp and RCS, 25 tools rather than Bird's 337. Fine if one-way
+  reports are enough and approvals come back some other way.
+- **Twilio** — there is a Twilio connector and it needs no auth, but its only tools are
+  `twilio__search` and `twilio__retrieve`, which search Twilio's documentation. It cannot
+  send messages. Do not pick it for this.
 
-Either way, set `notify_channel: "whatsapp"` and `notify_whatsapp` to the destination
-number, and keep credentials in environment variables.
+**Email works right now** with no setup, via the connected Gmail MCP. Keep
+`notify_channel: "email"` until Bird is connected, and as the fallback if WhatsApp
+delivery fails.
 
-The report content does not change between channels. Only the send step does.
+A note on WhatsApp generally: Meta only permits free-form business messages inside a
+24-hour window after the user messages the business. Outside that window an approved
+template is required. A daily report at 07:30 will land outside the window most days, so
+expect to need a template, or to message the agent first each morning. Bird handles the
+sending; the template approval is still Meta's process.
 
 ### 3. Scheduling
 

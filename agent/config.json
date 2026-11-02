@@ -15,5 +15,7 @@
   "min_hours_between_posts": 4,
   "thread_max_age_days": 7,
   "require_explicit_approval": true,
-  "approval_expiry_hours": 24
+  "approval_expiry_hours": 24,
+  "notify_channel_preferred": "whatsapp",
+  "notify_whatsapp_connector": "Bird"
 }

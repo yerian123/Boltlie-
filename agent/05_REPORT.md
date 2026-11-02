@@ -6,10 +6,18 @@ One channel, swappable. Configured in `agent/config.json` as `notify_channel`.
 
 | Channel | Status |
 |---|---|
-| `email` | **Working today.** Gmail MCP is connected. Default |
-| `whatsapp` | Needs setup. No WhatsApp MCP is connected in this environment. See README |
+| `whatsapp` | **Preferred.** Needs the **Bird** connector (email, SMS, WhatsApp, calls, agent inbox). Not yet installed — connect it in claude.ai connector settings |
+| `email` | **Works today** via the connected Gmail MCP. Use as the fallback and while Bird is being set up |
 
-The report goes out once a day after the morning sweep. Alerts (section below) go out
+**Why Bird over the alternatives.** The approval loop is two-way: the agent sends the
+report, the operator replies naming which drafts to post. Bird carries an agent inbox, so
+the reply comes back to the agent. **Sent** (SMS, WhatsApp, RCS) is a lighter option if
+one-way reports are acceptable. The **Twilio** connector cannot be used for this: its only
+tools are documentation search and retrieve, not message sending.
+
+The report content does not change between channels. Only the send step does.
+
+Reports go out once a day after the morning sweep. Alerts (section below) go out
 immediately, any time.
 
 ## Daily report format
