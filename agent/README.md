@@ -20,20 +20,60 @@ Also give it read access to `REDDIT_CONTEXT.md`, `02_ICP_and_Market.md`,
 
 ### 1. Reddit access
 
-Use the official API, not browser automation. Reddit blocks datacenter IPs on normal page
-loads but the API works fine from anywhere, and it does not break when they change their
-HTML.
+**Do not plan around the Reddit API.** Reddit announced on Sep 30, 2026 that it is closing
+public API access:
 
-Create a **script** app at `reddit.com/prefs/apps`. Store the client ID and secret as
-environment variables (`REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`) wherever the agent
-runs. Never in a file in this repo.
+| Date | What happens |
+|---|---|
+| Oct 31, 2026 | New public API access requests no longer accepted |
+| Nov 13, 2026 | RSS feed support ends |
+| Jan 12, 2027 | Unregistered apps begin losing access |
+| March 2027 | Public Data API access ends for everything remaining |
 
-Read-only scope covers the sweep. Posting needs the `submit` scope and an authorised
-account.
+New access is already closed, and the free tier was non-commercial only in any case. This
+use is commercial. Reported commercial pricing is roughly $12,000/month. Verify the dates
+against Reddit's own developer documentation before acting on them, but do not build on
+the Data API.
+
+**What to do instead.** The API was never needed at this volume. The agent reads five
+subreddits once a day and drafts at most three comments. Its value is the filtering and
+the drafting, and neither requires API access, only the thread text.
+
+Two workable arrangements:
+
+- **Operator gathers, agent drafts.** The operator skims the five subs and pastes anything
+  interesting. The agent applies the filter in `03_RULEBOOK.md`, drafts, and reports. No
+  API, no cost, no rate limits, nothing to break in March 2027. This is the default.
+- **Browser session on the operator's own machine.** A logged-in Chrome session is not API
+  access and is unaffected by the shutdown dates. More fragile, and automating it at volume
+  conflicts with Reddit's terms, so keep it to the pacing limits in `02_SCHEDULE.md`.
+
+Either way the agent never holds Reddit credentials, and posting stays manual under the
+approval gate in `03_RULEBOOK.md` section A.
 
 ### 2. Notifications
 
-**WhatsApp: connect the Bird connector.** It covers email, SMS, WhatsApp, voice and an
+**WhatsApp: Kapso is the better fit, Bird is the catalog option.**
+
+**Kapso** gives the agent its own WhatsApp number through WhatsApp's API. Free plan: 2,000
+messages/month, $2 in credits, one number, no credit card, and its MCP server is included
+on the free plan. Pro is $25/month for 100,000 messages; Platform $299/month for 1,000,000.
+At one daily report plus occasional alerts, roughly 100 messages a month, the free plan is
+ample.
+
+Three things the plan allowance does not cover:
+- Meta's own per-message fees are billed separately from Kapso's allowance.
+- Meta provides 1,000 free delivered service messages per number per month, no rollover.
+- Since Oct 1, 2026 non-template messages on connected production numbers are billable, and
+  free-form business messages are only permitted within 24 hours of the user messaging the
+  business. A 07:30 report falls outside that window most days, so expect to need an
+  approved template, or to message the agent first each morning.
+
+**Kapso is not in the claude.ai connector catalog** — a registry search returns Bird but
+not Kapso. It publishes a WhatsApp MCP server, so it is added as a custom MCP server rather
+than enabled from connector settings. That requires a host that supports custom servers.
+
+**Bird** is the catalog alternative. It covers email, SMS, WhatsApp, voice and an
 agent inbox. The inbox is the reason to pick it: the approval loop needs the operator's
 reply to reach the agent, not just the report to reach the operator. It is not installed
 yet — connect it in claude.ai connector settings, then set `notify_channel: "whatsapp"`

@@ -17,5 +17,6 @@
   "require_explicit_approval": true,
   "approval_expiry_hours": 24,
   "notify_channel_preferred": "whatsapp",
-  "notify_whatsapp_connector": "Bird"
+  "notify_whatsapp_connector": "Kapso (custom MCP) \u2014 Bird as catalog fallback",
+  "reddit_access": "manual or operator-side browser; Data API closed to new access Oct 31 2026"
 }
